@@ -28,6 +28,10 @@ install-topbeat:
     - defaults:
       input: {{ topbeat_settings.input }}
       output: {{ topbeat_settings.output }}
+      logstash: {{ topbeat_settings.logstash }}
+      file: {{ topbeat_settings.file }}
+      console: {{ topbeat_settings.console }}
+      shipper: {{ topbeat_settings.shipper }}
     - require_in:
       - pkg: {{ topbeat_settings.pkg_name }}
 

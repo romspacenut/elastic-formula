@@ -102,7 +102,7 @@ output:
       # Configure maximum TLS version allowed for connection to logstash
       {% if output.elasticsearch.tls.max_version is defined %}max_version: {{ output.elasticsearch.tls.max_version }}{% endif %}
     {% endif %}
-
+  {% if logstash is defined %}
   ### Logstash as output
   #logstash:
     # The Logstash hosts
@@ -141,7 +141,8 @@ output:
 
       # Configure curve types for ECDHE based cipher suites
       #curve_types: []
-
+  {% endif %}
+  {% if file is defined %}
   ### File as output
   #file:
     # Path to the directory where to save the generated files. The option is mandatory.
@@ -161,12 +162,13 @@ output:
 
 
   ### Console output
-  # console:
+  #console:
     # Pretty print json event
     #pretty: false
 
   ############################# Shipper #########################################
-
+{% endif %}
+{% if shipper is defined %}
 shipper:
   # The name of the shipper that publishes the network data. It can be used to group
   # all the transactions sent by a single shipper in the web interface.
@@ -198,7 +200,8 @@ shipper:
     #paths:
     #  - "/usr/share/GeoIP/GeoLiteCity.dat"
     #  - "/usr/local/var/GeoIP/GeoLiteCity.dat"
-
+{% endif %}
+{% if logging is defined %}
 ############################# Logging #########################################
 
 # There are three options for the log ouput: syslog, file, stderr.
@@ -237,3 +240,4 @@ logging:
   # Sets log level. The default log level is error.
   # Available log levels are: critical, error, warning, info, debug
   #level: error
+  {% endif %}

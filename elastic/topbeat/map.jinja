@@ -47,6 +47,51 @@
                     'max_version': '1.2'
                 }
             }
+        },
+        'logstash': {
+            'hosts': ['localhost:5044'],
+            'worker': 1,
+            'loadbalance': 'true',
+            'index': 'topbeat',
+            'tls': {
+                'certificate_authorities': ['/etc/pki/root/ca.pem'],
+                'certificate': '/etc/pki/client/cert.pem',
+                'certificate_key': '/etc/pki/client/cert.key',
+                'insecure': 'true',
+                'cipher_suites': [],
+                'curve_types': []
+            }
+        },
+        'file': {
+            'path': '/tmp/topbeat',
+            'filename': 'topbeat',
+            'rotate_every_kb': 10000,
+            'number_of_files': 7
+        },
+        'console': {
+            'pretty': 'false'
+        },
+        'shipper': {
+            'name': '',
+            'tags': ['service-X, 'web-tier'],
+            'ignore_outgoing': 'true',
+            'refresh_topology_freq': 10,
+            'topology_expire': 15,
+            'geoip': {
+                'paths': ['/usr/share/GeoIP/GeoLiteCity.dat', '/usr/local/var/GeoIP/GeoLiteCity.dat']
+            }
+        },
+        'logging': {
+            'to_syslog': 'true',
+            'to_files': 'false',
+            'files': {
+                'path': '/var/log/mybeat',
+                'name': 'mybeat',
+                'rotateeverybytes': 10485760,
+                'keepfiles': 7
+            },
+            'selectors': [],
+            'level': 'error'
         }
     }
 }%}
