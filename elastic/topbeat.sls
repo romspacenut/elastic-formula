@@ -19,6 +19,15 @@ install-topbeat:
     {% if topbeat_settings.version is defined %}
     - version: {{ topbeat_settings.version }}
     {% endif %}
+    
+{# highstate seems to get stuck on this #}
+#{{ topbeat_settings.pkg_name }}:
+#  service.running:
+#    - enable: True
+#    - restart: True
+#    - watch:
+#      - file: '/etc/topbeat/topbeat.yml'
+#      - pkg: install-topbeat
 
 /etc/topbeat/topbeat.yml:
   file.managed:
@@ -28,19 +37,9 @@ install-topbeat:
     - defaults:
       input: {{ topbeat_settings.input }}
       output: {{ topbeat_settings.output }}
-      logstash: {{ topbeat_settings.logstash }}
-      file: {{ topbeat_settings.file }}
-      console: {{ topbeat_settings.console }}
+      {% if topbeat_settings.shipper is defined %}
       shipper: {{ topbeat_settings.shipper }}
-    - require_in:
-      - pkg: {{ topbeat_settings.pkg_name }}
-
-{% if 1 == 2%}
-{{ topbeat_settings.pkg_name }}:
-  service.running:
-    - enable: True
-    - restart: True
-    - watch:
-      - file: '/etc/topbeat/topbeat.yml'
-      - pkg: install-topbeat
-{% endif %}
+      {% endif %}
+      {% if topbeat_settings.logging is defined %}
+      logging: {{ topbeat_settings.logging }}
+      {% endif %}

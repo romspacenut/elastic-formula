@@ -7,7 +7,7 @@ input:
 
   # Regular expression to match the processes that are monitored
   # By default, all the processes are monitored
-  procs: ["{{ ','.join(input.procs) }}"]
+  procs: [{{ "'%s'" %"','".join(input.procs) }}]
 
   # Statistics to collect (all enabled by default)
   stats:
@@ -23,7 +23,6 @@ input:
 # Configure what outputs to use when sending the data collected by the beat.
 # Multiple outputs may be used.
 output:
-
   ### Elasticsearch as output
   elasticsearch:
     # Array of hosts to connect to.
@@ -76,7 +75,7 @@ output:
     {% if output.elasticsearch.tls is defined %}
     tls:
       # List of root certificates for HTTPS server verifications
-      {% if output.elasticsearch.tls.certificate_authorities is defined %}certificate_authorities: ["{{ ','.join(output.elasticsearch.tls.certificate_authorities) }}"]{% endif %}
+      {% if output.elasticsearch.tls.certificate_authorities is defined %}certificate_authorities: [{{ "'%s'" %"','".join(output.elasticsearch.tls.certificate_authorities) }}]{% endif %}
 
       # Certificate for TLS client authentication
       {% if output.elasticsearch.tls.certificate is defined %}certificate: "{{ output.elasticsearch.tls.certificate }}"{% endif %}
@@ -91,10 +90,10 @@ output:
       {% if output.elasticsearch.tls.insecure is defined %}insecure: {{ output.elasticsearch.tls.insecure }}{% endif %}
 
       # Configure cipher suites to be used for TLS connections
-      {% if output.elasticsearch.tls.cipher_suites is defined %}cipher_suites: []{% endif %}
+      {% if output.elasticsearch.tls.cipher_suites is defined %}cipher_suites: [{{ "'%s'" %"','".join(output.elasticsearch.tls.cipher_suites) }}]{% endif %}
 
       # Configure curve types for ECDHE based cipher suites
-      {% if output.elasticsearch.tls.curve_types is defined %}curve_types: []{% endif %}
+      {% if output.elasticsearch.tls.curve_types is defined %}curve_types: [{{ "'%s'" %"','".join(output.elasticsearch.tls.curve_types) }}]{% endif %}
 
       # Configure minimum TLS version allowed for connection to logstash
       {% if output.elasticsearch.tls.min_version is defined %}min_version: {{ output.elasticsearch.tls.min_version }}{% endif %}
@@ -102,104 +101,108 @@ output:
       # Configure maximum TLS version allowed for connection to logstash
       {% if output.elasticsearch.tls.max_version is defined %}max_version: {{ output.elasticsearch.tls.max_version }}{% endif %}
     {% endif %}
-  {% if logstash is defined %}
+  {% if output.logstash is defined %}
   ### Logstash as output
-  #logstash:
+  logstash:
     # The Logstash hosts
-    #hosts: ["localhost:5044"]
+    {% if output.logstash.hosts is defined %}hosts: [{{ "'%s'" %"','".join(output.logstash.hosts) }}]{% endif %}
 
     # Number of workers per Logstash host.
-    #worker: 1
+    {% if output.logstash.worker is defined %}worker: {{ output.logstash.worker }}{% endif %}
 
     # Optional load balance the events between the Logstash hosts
-    #loadbalance: true
+    {% if output.logstash.loadbalance is defined %}loadbalance: true{% endif %}
 
     # Optional index name. The default index name depends on the each beat.
     # For Packetbeat, the default is set to packetbeat, for Topbeat
     # top topbeat and for Filebeat to filebeat.
-    #index: topbeat
-
+    {% if output.logstash.index is defined %}index: {{ output.logstash.index }}{% endif %}
+    {% if output.logstash.tls is defined %}
     # Optional TLS. By default is off.
-    #tls:
+    tls:
       # List of root certificates for HTTPS server verifications
-      #certificate_authorities: ["/etc/pki/root/ca.pem"]
+      {% if output.logstash.tls.certificate_authorities is defined %}certificate_authorities: [{{ "'%s'" %"','".join(output.logstash.tls.certificate_authorities) }}]{% endif %}
 
       # Certificate for TLS client authentication
-      #certificate: "/etc/pki/client/cert.pem"
+      {% if output.logstash.tls.certificate is defined %}certificate: "{{ output.logstash.tls.certificate }}"{% endif %}
 
       # Client Certificate Key
-      #certificate_key: "/etc/pki/client/cert.key"
+      {% if output.logstash.tls.certificate_key is defined %}certificate_key: "{{ output.logstash.tls.certificate_key }}"{% endif %}
 
       # Controls whether the client verifies server certificates and host name.
       # If insecure is set to true, all server host names and certificates will be
       # accepted. In this mode TLS based connections are susceptible to
       # man-in-the-middle attacks. Use only for testing.
-      #insecure: true
+      {% if output.logstash.tls.insecure is defined %}insecure: {{ output.logstash.tls.insecure }}{% endif %}
 
       # Configure cipher suites to be used for TLS connections
-      #cipher_suites: []
+      {% if output.logstash.tls.cipher_suites is defined %}cipher_suites: [{{ "'%s'" %"','".join(output.logstash.tls.cipher_suites) }}]{% endif %}
 
       # Configure curve types for ECDHE based cipher suites
-      #curve_types: []
+      {% if output.logstash.tls.curve_types is defined %}curve_types: [{{ "'%s'" %"','".join(output.logstash.tls.curve_types) }}]{% endif %}
+    {% endif %}
   {% endif %}
-  {% if file is defined %}
+  {% if output.file is defined %}
   ### File as output
-  #file:
+  file:
     # Path to the directory where to save the generated files. The option is mandatory.
-    #path: "/tmp/topbeat"
+    {% if output.file.path is defined %}path: "{{ output.file.path }}"{% endif %}
 
     # Name of the generated files. The default is `topbeat` and it generates files: `topbeat`, `topbeat.1`, `topbeat.2`, etc.
-    #filename: topbeat
+    {% if output.file.filename is defined %}filename: {{ output.file.filename }}{% endif %}
 
     # Maximum size in kilobytes of each file. When this size is reached, the files are
     # rotated. The default value is 10 MB.
-    #rotate_every_kb: 10000
+    {% if output.file.rotate_every_kb is defined %}rotate_every_kb: {{ output.file.rotate_every_kb }}{% endif %}
 
     # Maximum number of files under path. When this number of files is reached, the
     # oldest file is deleted and the rest are shifted from last to first. The default
     # is 7 files.
-    #number_of_files: 7
-
-
+    {% if output.file.number_of_files is defined %}number_of_files: {{ output.file.number_of_files }}{% endif %}
+  {% endif %}
+  {% if output.console is defined %}
   ### Console output
-  #console:
+  console:
     # Pretty print json event
-    #pretty: false
-
+    {% if output.console.pretty is defined %}pretty: {{ output.console.pretty }}{% endif %}
+  {% endif %}
   ############################# Shipper #########################################
-{% endif %}
+
 {% if shipper is defined %}
 shipper:
   # The name of the shipper that publishes the network data. It can be used to group
   # all the transactions sent by a single shipper in the web interface.
   # If this options is not defined, the hostname is used.
-  #name:
+  {% if shipper.name is defined %}name: {{ shipper.name }}{% endif %}
 
   # The tags of the shipper are included in their own field with each
   # transaction published. Tags make it easy to group servers by different
   # logical properties.
-  #tags: ["service-X", "web-tier"]
+  {% if shipper.tags is defined %}tags: [{{ "'%s'" %"','".join(shipper.tags) }}]{% endif %}
 
   # Uncomment the following if you want to ignore transactions created
   # by the server on which the shipper is installed. This option is useful
   # to remove duplicates if shippers are installed on multiple servers.
-  #ignore_outgoing: true
+  {% if shipper.ignore_outgoing is defined %}ignore_outgoing: {{ shipper.ignore_outgoing }}{% endif %}
 
   # How often (in seconds) shippers are publishing their IPs to the topology map.
   # The default is 10 seconds.
-  #refresh_topology_freq: 10
+  {% if shipper.refresh_topology_freq is defined %}refresh_topology_freq: {{ shipper.refresh_topology_freq }}{% endif %}
 
   # Expiration time (in seconds) of the IPs published by a shipper to the topology map.
   # All the IPs will be deleted afterwards. Note, that the value must be higher than
   # refresh_topology_freq. The default is 15 seconds.
-  #topology_expire: 15
+  {% if shipper.topology_expire is defined %}topology_expire: {{ shipper.topology_expire }}{% endif %}
 
   # Configure local GeoIP database support.
   # If no paths are not configured geoip is disabled.
-  #geoip:
-    #paths:
-    #  - "/usr/share/GeoIP/GeoLiteCity.dat"
-    #  - "/usr/local/var/GeoIP/GeoLiteCity.dat"
+  {% if shipper.geoip.paths is defined %}
+  geoip:
+    paths:
+      {%- for path in shipper.geoip.paths %}
+      {{ '- "{0}"'.format(path) }}
+      {%- endfor %}
+  {% endif %}
 {% endif %}
 {% if logging is defined %}
 ############################# Logging #########################################
@@ -211,33 +214,33 @@ logging:
 
   # Send all logging output to syslog. On Windows default is false, otherwise
   # default is true.
-  #to_syslog: true
+  {% if logging.to_syslog is defined %}to_syslog: {{ logging.to_syslog }}{% endif %}
 
   # Write all logging output to files. Beats automatically rotate files if rotateeverybytes
   # limit is reached.
-  #to_files: false
-
+  {% if logging.to_files is defined %}to_files: {{ logging.to_files }}{% endif %}
+  {% if logging.files is defined %}
   # To enable logging to files, to_files option has to be set to true
   files:
     # The directory where the log files will written to.
-    #path: /var/log/mybeat
+    {% if logging.files.path is defined %}path: {{ logging.files.path }}{% endif %}
 
     # The name of the files where the logs are written to.
-    #name: mybeat
+    {% if logging.files.name is defined %}name: {{ logging.files.name }}{% endif %}
 
     # Configure log file size limit. If limit is reached, log file will be
     # automatically rotated
-    rotateeverybytes: 10485760 # = 10MB
+    {% if logging.files.rotateeverybytes is defined %}rotateeverybytes: {{ logging.files.rotateeverybytes }} # = 10MB{% endif %}
 
     # Number of rotated log files to keep. Oldest files will be deleted first.
-    #keepfiles: 7
-
+    {% if logging.files.keepfiles is defined %}keepfiles: {{ logging.files.keepfiles }}{% endif %}
+  {% endif %}
   # Enable debug output for selected components. To enable all selectors use ["*"]
   # Other available selectors are beat, publish, service
   # Multiple selectors can be chained.
-  #selectors: [ ]
+  {% if logging.selectors is defined %}selectors: [{{ "'%s'" %"','".join(logging.selectors) }}]{% endif %}
 
   # Sets log level. The default log level is error.
   # Available log levels are: critical, error, warning, info, debug
-  #level: error
-  {% endif %}
+  {% if logging.level is defined %}level: {{ logging.level }}{% endif %}
+{% endif %}
