@@ -1,0 +1,136 @@
+{% set os_map = salt['grains.filter_by']({
+    'Debian': {
+        'pkgrepo': 'deb https://packages.elastic.co/beats/apt stable main',
+        'key_url': 'https://packages.elastic.co/GPG-KEY-elasticsearch',
+        'file': '/etc/apt/sources.list.d/filebeat.list',
+        'pkg_name': 'filebeat'
+    },
+    'RedHat': {
+        'pkg_name': 'filebeat'
+    },
+}, grain="os_family", merge=salt['pillar.get']('elastic:filebeat:lookup'), default='Debian') %}
+
+{% set full_settings = {
+    'filebeat': {
+        'prospectors': {
+            'paths': ['/var/log/*.log'],
+            'encoding': 'plain',
+            'input_type': 'log',
+            'fields': {
+                'level': 'debug',
+                'review': 1
+            },
+            'fields_under_root': 'false',
+            'ignore_older': '24h',
+            'document_type': 'log',
+            'scan_frequency': '10s',
+            'harvester_buffer_size': 16384,
+            'tail_files': 'false',
+            'backoff': '1s',
+            'max_backoff': '10s',
+            'backoff_factor': 2,
+            'partial_line_waiting': '5s',
+            'force_close_files': 'false',
+            'spool_size': 1024,
+            'idle_timeout': '5s',
+            'registry_file': '/var/lib/filebeat/registry',
+            'config_dir': ''
+        },
+        'output': {
+            'elasticsearch': {
+                'hosts': ['localhost:9200'],
+                'protocol': 'https',
+                'username': 'admin',
+                'password': 's3cr3t',
+                'worker': 1,
+                'index': 'filebeat',
+                'path': '/elasticsearch',
+                'max_retries': 3,
+                'bulk_max_size': 50,
+                'timeout': 90,
+                'flush_interval': 1,
+                'save_topology': 'false',
+                'topology_expire': 15,
+                'tls': {
+                    'certificate_authorities': ['/etc/pki/root/ca.pem'],
+                    'certificate': '/etc/pki/client/cert.pem',
+                    'certificate_key': '/etc/pki/client/cert.key',
+                    'insecure': 'true',
+                    'cipher_suites': [],
+                    'curve_types': [],
+                    'min_version': '1.0',
+                    'max_version': '1.2'
+                }
+            }
+        },
+        'logstash': {
+            'hosts': ['localhost:5044'],
+            'worker': 1,
+            'loadbalance': 'true',
+            'index': 'filebeat',
+            'tls': {
+                'certificate_authorities': ['/etc/pki/root/ca.pem'],
+                'certificate': '/etc/pki/client/cert.pem',
+                'certificate_key': '/etc/pki/client/cert.key',
+                'insecure': 'true',
+                'cipher_suites': [],
+                'curve_types': []
+            }
+        },
+        'file': {
+            'path': '/tmp/filebeat',
+            'filename': 'filebeat',
+            'rotate_every_kb': 10000,
+            'number_of_files': 7
+        },
+        'console': {
+            'pretty': 'false'
+        },
+        'shipper': {
+            'name': '',
+            'tags': ['service-X', 'web-tier'],
+            'ignore_outgoing': 'true',
+            'refresh_topology_freq': 10,
+            'topology_expire': 15,
+            'geoip': {
+                'paths': ['/usr/share/GeoIP/GeoLiteCity.dat', '/usr/local/var/GeoIP/GeoLiteCity.dat']
+            }
+        },
+        'logging': {
+            'to_syslog': 'true',
+            'to_files': 'false',
+            'files': {
+                'path': '/var/log/mybeat',
+                'name': 'mybeat',
+                'rotateeverybytes': 10485760,
+                'keepfiles': 7
+            },
+            'selectors': [],
+            'level': 'error'
+        }
+    }
+}%}
+
+{% set default_settings = {
+    'filebeat': {
+        'prospectors': {
+            'paths': ['/var/log/*.log'],
+            'input_type': 'log',
+            'registry_file': '/var/lib/filebeat/registry'
+        },
+        'output': {
+            'elasticsearch': {
+                'hosts': ['localhost:9200']
+            }
+        }
+    }
+}%}
+
+{# Uncomment out to merge in the settings for testing #}
+{#% do default_settings.update(full_settings) %#}
+
+{# Merge os_map into default_settings dictionary #}
+{% do default_settings.filebeat.update(os_map) %}
+
+{# Update settings defaults from pillar data #}
+{% set filebeat_settings = salt['pillar.get']('elastic:filebeat', default=default_settings.filebeat, merge=True) %}
