@@ -35,3 +35,26 @@ install-packetbeat:
       {% if packetbeat_settings.logging is defined %}
       logging: {{ packetbeat_settings.logging }}
       {% endif %}
+
+{# This seems to hang possiblity because the init script doesn't return properly; cowboy command below until this is fixed #}
+#service-packetbeat:
+#  service.running:
+#    - name: {{ packetbeat_settings.pkg_name }}
+#    - enable: True
+#    - reload: True
+#    - watch:
+#      - pkg: install-packetbeat
+#     - file: /etc/packetbeat/packetbeat.yml
+
+kill-packetbeat:
+  cmd.run:
+    - use_vt: True
+    - user: root
+    - name: killall packetbeat
+    - onlyif: pgrep -f packetbeat
+
+start-packetbeat:
+  cmd.run:
+    - use_vt: True
+    - user: root
+    - name: service packetbeat start
