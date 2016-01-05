@@ -79,7 +79,7 @@
                 'hosts': ['localhost:5044'],
                 'worker': 1,
                 'loadbalance': 'true',
-                'index': 'topbeat',
+                'index': 'packetbeat',
                 'tls': {
                     'certificate_authorities': ['/etc/pki/root/ca.pem'],
                     'certificate': '/etc/pki/client/cert.pem',
@@ -90,8 +90,8 @@
                 }
             },
             'file': {
-                'path': '/tmp/topbeat',
-                'filename': 'topbeat',
+                'path': '/tmp/packetbeat',
+                'filename': 'packetbeat',
                 'rotate_every_kb': 10000,
                 'number_of_files': 7
             },
@@ -155,6 +155,11 @@
             },
             'mongodb': {
                 'ports': ['27017']
+            }
+        },
+        'output': {
+            'elasticsearch': {
+                'hosts': ['localhost:9200']
             }
         }
     }

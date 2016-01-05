@@ -20,15 +20,6 @@ install-topbeat:
     - version: {{ topbeat_settings.version }}
     {% endif %}
     
-{# highstate seems to get stuck on this #}
-#{{ topbeat_settings.pkg_name }}:
-#  service.running:
-#    - enable: True
-#    - restart: True
-#    - watch:
-#      - file: '/etc/topbeat/topbeat.yml'
-#      - pkg: install-topbeat
-
 /etc/topbeat/topbeat.yml:
   file.managed:
     - source: salt://elastic/topbeat/topbeat.yml.jinja
@@ -43,3 +34,26 @@ install-topbeat:
       {% if topbeat_settings.logging is defined %}
       logging: {{ topbeat_settings.logging }}
       {% endif %}
+
+{# This seems to hang possiblity because the init script doesn't return properly; cowboy command below until this is fixed #}
+#service-topbeat:
+#  service.running:
+#    - name: {{ topbeat_settings.pkg_name }}
+#    - enable: True
+#    - reload: True
+#    - watch:
+#      - pkg: install-topbeat
+#     - file: /etc/topbeat/topbeat.yml
+
+kill-topbeat:
+  cmd.run:
+    - use_vt: True
+    - user: root
+    - name: killall topbeat
+    - onlyif: pgrep -f topbeat
+
+start-topbeat:
+  cmd.run:
+    - use_vt: True
+    - user: root
+    - name: service topbeat start
