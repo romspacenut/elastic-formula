@@ -11,7 +11,22 @@ filebeat_repo:
       - pkg: install-filebeat
     - watch_in:
       - pkg: install-filebeat
-{% endif %}
+{%- elif grains['os_family'] == 'RedHat' %}
+logstash-repo-key:
+  cmd.run:
+    - name:  sudo rpm --import https://packages.elastic.co/GPG-KEY-elasticsearch
+    - unless: rpm -qi gpg-pubkey-d88e42b4-52371eca
+
+logstash-repo:
+  pkgrepo.managed:
+    - humanname: Elastic Beats Repository
+    - baseurl: https://packages.elastic.co/beats/yum/el/$basearch
+    - gpgcheck: 1
+    - gpgkey: https://packages.elastic.co/GPG-KEY-elasticsearch
+    - enabled: 1
+    - require:
+      - cmd: logstash-repo-key
+{%- endif %}
 
 install-filebeat:
   pkg.installed:
