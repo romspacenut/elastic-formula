@@ -3,10 +3,15 @@
         'pkgrepo': 'deb https://packages.elastic.co/beats/apt stable main',
         'key_url': 'https://packages.elastic.co/GPG-KEY-elasticsearch',
         'file': '/etc/apt/sources.list.d/filebeat.list',
-        'pkg_name': 'filebeat'
+        'pkg_name': 'filebeat',
+        'service_name': 'filebeat'
     },
     'RedHat': {
-        'pkg_name': 'filebeat'
+        'pkgrepo': 'deb https://packages.elastic.co/beats/apt stable main',
+        'key_url': 'https://packages.elastic.co/GPG-KEY-elasticsearch',
+        'file': '/etc/apt/sources.list.d/filebeat.list',
+        'pkg_name': 'filebeat',
+        'service_name': 'filebeat'
     },
 }, grain="os_family", merge=salt['pillar.get']('elastic:filebeat:lookup'), default='Debian') %}
 
