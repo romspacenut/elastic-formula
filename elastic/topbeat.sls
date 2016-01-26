@@ -34,6 +34,11 @@ install-topbeat:
       {% if topbeat_settings.logging is defined %}
       logging: {{ topbeat_settings.logging }}
       {% endif %}
+  cmd.wait:
+    - use_vt: True
+    - name: 'su -m -c "service {{ topbeat_settings.pkg_name }} restart"'
+    - watch:
+      - file: /etc/topbeat/topbeat.yml
 
 {# This seems to hang possiblity because the init script doesn't return properly; cowboy command below until this is fixed #}
 #service-topbeat:
@@ -43,17 +48,10 @@ install-topbeat:
 #    - reload: True
 #    - watch:
 #      - pkg: install-topbeat
-#     - file: /etc/topbeat/topbeat.yml
+#      - file: /etc/topbeat/topbeat.yml
 
-kill-topbeat:
+start-{ topbeat_settings.pkg_name }}:
   cmd.run:
     - use_vt: True
-    - user: root
-    - name: killall topbeat
-    - onlyif: pgrep -f topbeat
-
-start-topbeat:
-  cmd.run:
-    - use_vt: True
-    - user: root
-    - name: service topbeat start
+    - name: 'su -m -c "service {{ topbeat_settings.pkg_name }} start"'
+    - unless: pgrep -f {{ topbeat_settings.pkg_name }}
