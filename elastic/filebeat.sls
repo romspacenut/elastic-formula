@@ -49,6 +49,11 @@ install-filebeat:
       {% if filebeat_settings.logging is defined %}
       logging: {{ filebeat_settings.logging }}
       {% endif %}
+  cmd.wait:
+    - use_vt: True
+    - name: 'su -m -c "service {{ filebeat_settings.pkg_name }} restart"'
+    - watch:
+      - file: /etc/filebeat/filebeat.yml
 
 {# This seems to hang possiblity because the init script doesn't return properly; cowboy command below until this is fixed #}
 #service-filebeat:
@@ -60,15 +65,8 @@ install-filebeat:
 #      - pkg: install-filebeat
 #     - file: /etc/filebeat/filebeat.yml
 
-kill-filebeat:
+start-{{ filebeat_settings.pkg_name }}:
   cmd.run:
     - use_vt: True
-    - user: root
-    - name: killall filebeat
-    - onlyif: pgrep -f filebeat
-
-start-filebeat:
-  cmd.run:
-    - use_vt: True
-    - user: root
-    - name: service filebeat start
+    - name: 'su -m -c "service {{ filebeat_settings.pkg_name }} start"'
+    - unless: pgrep -f {{ filebeat_settings.pkg_name }}

@@ -35,6 +35,11 @@ install-packetbeat:
       {% if packetbeat_settings.logging is defined %}
       logging: {{ packetbeat_settings.logging }}
       {% endif %}
+  cmd.wait:
+    - use_vt: True
+    - name: 'su -m -c "service {{ packetbeat_settings.pkg_name }} restart"'
+    - watch:
+      - file: /etc/packetbeat/packetbeat.yml
 
 {# This seems to hang possiblity because the init script doesn't return properly; cowboy command below until this is fixed #}
 #service-packetbeat:
@@ -46,15 +51,8 @@ install-packetbeat:
 #      - pkg: install-packetbeat
 #     - file: /etc/packetbeat/packetbeat.yml
 
-kill-packetbeat:
+start-{{ packetbeat_settings.pkg_name }}:
   cmd.run:
     - use_vt: True
-    - user: root
-    - name: killall packetbeat
-    - onlyif: pgrep -f packetbeat
-
-start-packetbeat:
-  cmd.run:
-    - use_vt: True
-    - user: root
-    - name: service packetbeat start
+    - name: 'su -m -c "service {{ packetbeat_settings.pkg_name }} start"'
+    - unless: pgrep -f {{ packetbeat_settings.pkg_name }}
