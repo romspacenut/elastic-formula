@@ -66,30 +66,30 @@
                     'min_version': '1.0',
                     'max_version': '1.2'
                 }
+            },
+            'logstash': {
+                'hosts': ['localhost:5044'],
+                'worker': 1,
+                'loadbalance': 'true',
+                'index': 'filebeat',
+                'tls': {
+                    'certificate_authorities': ['/etc/pki/root/ca.pem'],
+                    'certificate': '/etc/pki/client/cert.pem',
+                    'certificate_key': '/etc/pki/client/cert.key',
+                    'insecure': 'true',
+                    'cipher_suites': [],
+                    'curve_types': []
+                }
+            },
+            'file': {
+                'path': '/tmp/filebeat',
+                'filename': 'filebeat',
+                'rotate_every_kb': 10000,
+                'number_of_files': 7
+            },
+            'console': {
+                'pretty': 'false'
             }
-        },
-        'logstash': {
-            'hosts': ['localhost:5044'],
-            'worker': 1,
-            'loadbalance': 'true',
-            'index': 'filebeat',
-            'tls': {
-                'certificate_authorities': ['/etc/pki/root/ca.pem'],
-                'certificate': '/etc/pki/client/cert.pem',
-                'certificate_key': '/etc/pki/client/cert.key',
-                'insecure': 'true',
-                'cipher_suites': [],
-                'curve_types': []
-            }
-        },
-        'file': {
-            'path': '/tmp/filebeat',
-            'filename': 'filebeat',
-            'rotate_every_kb': 10000,
-            'number_of_files': 7
-        },
-        'console': {
-            'pretty': 'false'
         },
         'shipper': {
             'name': '',
@@ -123,10 +123,9 @@
             'input_type': 'log',
             'registry_file': '/var/lib/filebeat/registry'
         },
-        'output': {
-            'elasticsearch': {
-                'hosts': ['localhost:9200']
-            }
+        'logging': {
+            'to_syslog': 'true',
+            'level': 'error'
         }
     }
 }%}

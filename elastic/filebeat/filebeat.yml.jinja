@@ -151,6 +151,7 @@ filebeat:
 # Multiple outputs may be used.
 output:
   ### Elasticsearch as output
+  {% if output.elasticsearch is defined %}
   elasticsearch:
     # Array of hosts to connect to.
     # Scheme and port can be left out and will be set to the default (http and 9200)
@@ -228,11 +229,17 @@ output:
       # Configure maximum TLS version allowed for connection to logstash
       {% if output.elasticsearch.tls.max_version is defined %}max_version: {{ output.elasticsearch.tls.max_version }}{% endif %}
     {% endif %}
+  {% endif %}
   {% if output.logstash is defined %}
   ### Logstash as output
   logstash:
     # The Logstash hosts
-    {% if output.logstash.hosts is defined %}hosts: [{{ "'%s'" %"','".join(output.logstash.hosts) }}]{% endif %}
+    {%- if output.logstash.hosts is defined %}
+    hosts:
+      {%- for value in output.logstash.hosts %}
+      - {{ value }}
+      {%- endfor %}
+    {%- endif %}
 
     # Number of workers per Logstash host.
     {% if output.logstash.worker is defined %}worker: {{ output.logstash.worker }}{% endif %}
@@ -248,7 +255,12 @@ output:
     # Optional TLS. By default is off.
     tls:
       # List of root certificates for HTTPS server verifications
-      {% if output.logstash.tls.certificate_authorities is defined %}certificate_authorities: [{{ "'%s'" %"','".join(output.logstash.tls.certificate_authorities) }}]{% endif %}
+      {% if output.logstash.tls.certificate_authorities is defined %}
+      certificate_authorities:
+        {%- for value in output.logstash.tls.certificate_authorities %}
+        - {{ value }}
+        {%- endfor %}
+      {% endif %}
 
       # Certificate for TLS client authentication
       {% if output.logstash.tls.certificate is defined %}certificate: "{{ output.logstash.tls.certificate }}"{% endif %}
