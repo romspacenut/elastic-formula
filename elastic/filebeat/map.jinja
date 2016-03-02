@@ -21,6 +21,9 @@
             'paths': ['/var/log/*.log'],
             'encoding': 'plain',
             'input_type': 'log',
+            'exclude_lines': ["^DBG"],
+            'include_lines': ["^ERR", "^WARN"],
+            'exclude_files': [".gz$"],
             'fields': {
                 'level': 'debug',
                 'review': 1
@@ -30,6 +33,14 @@
             'document_type': 'log',
             'scan_frequency': '10s',
             'harvester_buffer_size': 16384,
+            'max_bytes': 10485760,
+            'multiline': {
+                'pattern': '^\[',
+                'negate': 'false',
+                'match': 'after',
+                'max_lines': 500,
+                'timeout': '5s',
+            },
             'tail_files': 'false',
             'backoff': '1s',
             'max_backoff': '10s',
