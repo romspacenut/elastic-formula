@@ -15,7 +15,7 @@ filebeat:
         {%- for path in prospectors.paths %}
         {{ '- {0}'.format(path) }}
         {%- endfor %}
-      # - c:\programdata\elasticsearch\logs\*
+        #- c:\programdata\elasticsearch\logs\*
 
       # Configure the file encoding for reading files with international characters
       # following the W3C recommendation for HTML5 (http://www.w3.org/TR/encoding).
@@ -32,6 +32,32 @@ filebeat:
       # * stdin: Reads the standard in
       input_type: {{ prospectors.input_type }}
 
+      {%- if prospectors.exclude_lines is defined %}
+      # Exclude lines. A list of regular expressions to match. It drops the lines that are
+      # matching any regular expression from the list. The include_lines is called before
+      # exclude_lines. By default, no lines are dropped.
+      {%- for exclude_line in prospectors.exclude_lines %}
+      {{ '- {0}'.format(exclude_line) }}
+      {%- endfor %}
+      {%- endif %}
+
+      {%- if prospectors.include_lines is defined %}
+      # Include lines. A list of regular expressions to match. It exports the lines that are
+      # matching any regular expression from the list. The include_lines is called before
+      # exclude_lines. By default, all the lines are exported.
+      {%- for include_line in prospectors.include_lines %}
+      {{ '- {0}'.format(include_line) }}
+      {%- endfor %}
+      {%- endif %}
+
+      {%- if prospectors.exclude_files is defined %}
+      # Exclude files. A list of regular expressions to match. Filebeat drops the files that
+      # are matching any regular expression from the list. By default, no files are dropped.
+      {%- for exclude_file in prospectors.exclude_files %}
+      {{ '- {0}'.format(exclude_file) }}
+      {%- endfor %}
+      {%- endif %}
+      
       # Optional additional fields. These field can be freely picked
       # to add additional information to the crawled log files for filtering
       {%- if prospectors.fields is defined %}
@@ -64,6 +90,36 @@ filebeat:
       # Defines the buffer size every harvester uses when fetching the file
       {% if prospectors.harvester_buffer_size is defined %}harvester_buffer_size: {{ prospectors.harvester_buffer_size }}{% endif %}
 
+      # Maximum number of bytes a single log event can have
+      # All bytes after max_bytes are discarded and not sent. The default is 10MB.
+      # This is especially useful for multiline log messages which can get large.
+      {% if prospectors.max_bytes is defined %}max_bytes: {{ prospectors.max_bytes }}{% endif %}
+
+      {%- if prospectors.multiline is defined %}
+      # Mutiline can be used for log messages spanning multiple lines. This is common
+      # for Java Stack Traces or C-Line Continuation
+      multiline:
+        # The regexp Pattern that has to be matched. The example pattern matches all lines starting with [
+        {% if prospectors.multiline.pattern is defined %}pattern: {{ prospectors.multiline.pattern }}{% endif %}
+
+        # Defines if the pattern set under pattern should be negated or not. Default is false.
+        {% if prospectors.multiline.negate is defined %}negate: {{ prospectors.multiline.negate }}{% endif %}
+
+        # Match can be set to "after" or "before". It is used to define if lines should be append to a pattern
+        # that was (not) matched before or after or as long as a pattern is not matched based on negate.
+        # Note: After is the equivalent to previous and before is the equivalent to to next in Logstash
+        {% if prospectors.multiline.match is defined %}match: {{ prospectors.multiline.match }}{% endif %}
+
+        # The maximum number of lines that are combined to one event.
+        # In case there are more the max_lines the additional lines are discarded.
+        # Default is 500
+        {% if prospectors.multiline.max_lines is defined %}max_lines: {{ prospectors.multiline.max_lines }}{% endif %}
+
+        # After the defined timeout, an multiline event is sent even if no new pattern was found to start a new event
+        # Default is 5s.
+        {% if prospectors.multiline.timeout is defined %}timeout: {{ prospectors.multiline.timeout }}{% endif %}
+      {%- endif %}
+
       # Setting tail_files to true means filebeat starts readding new files at the end
       # instead of the beginning. If this is used in combination with log rotation
       # this can mean that the first entries of a new file are skipped.
@@ -87,12 +143,6 @@ filebeat:
       # The backoff value will be multiplied each time with the backoff_factor until max_backoff is reached
       {% if prospectors.backoff_factor is defined %}backoff_factor: {{ prospectors.backoff_factor }}{% endif %}
 
-      # Defines the time on how long the harvester will wait for a line to be completed.
-      # Sometimes a lines it not completely written when checked by filebeat. Filebeat
-      # will wait for the time defined below so the system can complete the line.
-      # In case the line is not completed in this time, the line will be skipped.
-      {% if prospectors.partial_line_waiting is defined %}partial_line_waiting: {{ prospectors.partial_line_waiting }}{% endif %}
-
       # This option closes a file, as soon as the file name changes.
       # This config option is recommended on windows only. Filebeat keeps the files it's reading open. This can cause
       # issues when the file is removed, as the file will not be fully removed until also Filebeat closes
@@ -103,22 +153,10 @@ filebeat:
       # but lower the ignore_older value to release files faster.
       {% if prospectors.force_close_files is defined %}force_close_files: {{ prospectors.force_close_files }}{% endif %}
 
+    # Additional prospector
     #-
-    #  paths:
-    #    - /var/log/apache/*.log
-    #  type: log
-    #
-    #  # Ignore files which are older then 24 hours
-    #  ignore_older: 24h
-    #
-    #  # Additional fields which can be freely defined
-    #  fields:
-    #    type: apache
-    #    server: localhost
-    #-
-    #  type: stdin
-    #  paths:
-    #    - "-"
+      # Configuration to use stdin input
+      #input_type: stdin
 
   # General filebeat configuration options
   #
@@ -140,7 +178,6 @@ filebeat:
   # The config_dir MUST point to a different directory then where the main filebeat config file is in.
   {% if prospectors.config_dir is defined %}config_dir: {{ prospectors.config_dir }}{% endif %}
 
-
 ###############################################################################
 ############################# Libbeat Config ##################################
 # Base config file used by all other beats for using libbeat features
@@ -150,8 +187,8 @@ filebeat:
 # Configure what outputs to use when sending the data collected by the beat.
 # Multiple outputs may be used.
 output:
+  {%- if output.elasticsearch is defined %}
   ### Elasticsearch as output
-  {% if output.elasticsearch is defined %}
   elasticsearch:
     # Array of hosts to connect to.
     # Scheme and port can be left out and will be set to the default (http and 9200)
@@ -159,7 +196,7 @@ output:
     # IPv6 addresses should always be defined as: https://[2001:db8::1]:9200
     hosts: ["{{ ','.join(output.elasticsearch.hosts) }}"]
 
-    # Optional protocol and basic auth credentials. These are deprecated.
+    # Optional protocol and basic auth credentials.
     {% if output.elasticsearch.protocol is defined %}protocol: "{{ output.elasticsearch.protocol }}"{% endif %}
     {% if output.elasticsearch.username is defined %}username: "{{ output.elasticsearch.username }}"{% endif %}
     {% if output.elasticsearch.password is defined %}password: "{{ output.elasticsearch.password }}"{% endif %}
@@ -167,12 +204,15 @@ output:
     # Number of workers per Elasticsearch host.
     {% if output.elasticsearch.worker is defined %}worker: {{ output.elasticsearch.worker }}{% endif %}
 
-    # Optional index name. The default is "topbeat" and generates
-    # [topbeat-]YYYY.MM.DD keys.
+    # Optional index name. The default is "filebeat" and generates
+    # [filebeat-]YYYY.MM.DD keys.
     {% if output.elasticsearch.index is defined %}index: "{{ output.elasticsearch.index }}"{% endif %}
 
     # Optional HTTP Path
     {% if output.elasticsearch.path is defined %}path: "{{ output.elasticsearch.path }}"{% endif %}
+
+    # Proxy server url
+    {% if output.elasticsearch.proxy_url is defined %}proxy_url: "{{ output.elasticsearch.proxy_url }}"{% endif %}
 
     # The number of times a particular Elasticsearch index operation is attempted. If
     # the indexing operation doesn't succeed after this many retries, the events are
@@ -199,8 +239,8 @@ output:
     # Elasticsearch. The default is 15 seconds.
     {% if output.elasticsearch.topology_expire is defined %}topology_expire: {{ output.elasticsearch.topology_expire }}{% endif %}
 
+    {%- if output.elasticsearch.tls is defined %}
     # tls configuration. By default is off.
-    {% if output.elasticsearch.tls is defined %}
     tls:
       # List of root certificates for HTTPS server verifications
       {% if output.elasticsearch.tls.certificate_authorities is defined %}certificate_authorities: [{{ "'%s'" %"','".join(output.elasticsearch.tls.certificate_authorities) }}]{% endif %}
@@ -228,13 +268,13 @@ output:
 
       # Configure maximum TLS version allowed for connection to logstash
       {% if output.elasticsearch.tls.max_version is defined %}max_version: {{ output.elasticsearch.tls.max_version }}{% endif %}
-    {% endif %}
-  {% endif %}
-  {% if output.logstash is defined %}
+    {%- endif %}
+  {%- endif %}
+  {%- if output.logstash is defined %}
   ### Logstash as output
   logstash:
-    # The Logstash hosts
     {%- if output.logstash.hosts is defined %}
+    # The Logstash hosts
     hosts:
       {%- for value in output.logstash.hosts %}
       - {{ value }}
@@ -244,6 +284,9 @@ output:
     # Number of workers per Logstash host.
     {% if output.logstash.worker is defined %}worker: {{ output.logstash.worker }}{% endif %}
 
+    # Set gzip compression level.
+    #compression_level: 3
+
     # Optional load balance the events between the Logstash hosts
     {% if output.logstash.loadbalance is defined %}loadbalance: true{% endif %}
 
@@ -251,7 +294,8 @@ output:
     # For Packetbeat, the default is set to packetbeat, for Topbeat
     # top topbeat and for Filebeat to filebeat.
     {% if output.logstash.index is defined %}index: {{ output.logstash.index }}{% endif %}
-    {% if output.logstash.tls is defined %}
+
+    {%- if output.logstash.tls is defined %}
     # Optional TLS. By default is off.
     tls:
       # List of root certificates for HTTPS server verifications
@@ -279,9 +323,9 @@ output:
 
       # Configure curve types for ECDHE based cipher suites
       {% if output.logstash.tls.curve_types is defined %}curve_types: [{{ "'%s'" %"','".join(output.logstash.tls.curve_types) }}]{% endif %}
-    {% endif %}
-  {% endif %}
-  {% if output.file is defined %}
+    {%- endif %}
+  {%- endif %}
+  {%- if output.file is defined %}
   ### File as output
   file:
     # Path to the directory where to save the generated files. The option is mandatory.
@@ -298,16 +342,16 @@ output:
     # oldest file is deleted and the rest are shifted from last to first. The default
     # is 7 files.
     {% if output.file.number_of_files is defined %}number_of_files: {{ output.file.number_of_files }}{% endif %}
-  {% endif %}
-  {% if output.console is defined %}
+  {%- endif %}
+  {%- if output.console is defined %}
   ### Console output
   console:
     # Pretty print json event
     {% if output.console.pretty is defined %}pretty: {{ output.console.pretty }}{% endif %}
-  {% endif %}
-  ############################# Shipper #########################################
+  {%- endif %}
 
-{% if shipper is defined %}
+{%- if shipper is defined %}
+############################# Shipper #########################################
 shipper:
   # The name of the shipper that publishes the network data. It can be used to group
   # all the transactions sent by a single shipper in the web interface.
@@ -335,14 +379,15 @@ shipper:
 
   # Configure local GeoIP database support.
   # If no paths are not configured geoip is disabled.
-  {% if shipper.geoip.paths is defined %}
+  {%- if shipper.geoip.paths is defined %}
   geoip:
     paths:
       {%- for path in shipper.geoip.paths %}
       {{ '- "{0}"'.format(path) }}
       {%- endfor %}
-  {% endif %}
-{% endif %}
+  {%- endif %}
+{%- endif %}
+
 {% if logging is defined %}
 ############################# Logging #########################################
 
