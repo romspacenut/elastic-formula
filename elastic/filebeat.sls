@@ -62,7 +62,6 @@ service-filebeat:
     - enable: True
     - reload: True
     - watch:
-      - pkg: install-filebeat
       - file: /etc/filebeat/filebeat.yml
 
 #restart-{{ filebeat_settings.pkg_name }}:
