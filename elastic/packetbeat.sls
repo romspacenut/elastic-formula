@@ -51,8 +51,8 @@ install-packetbeat:
 #      - pkg: install-packetbeat
 #     - file: /etc/packetbeat/packetbeat.yml
 
-start-{{ packetbeat_settings.pkg_name }}:
+restart-{{ packetbeat_settings.pkg_name }}:
   cmd.run:
     - use_vt: True
-    - name: 'su -m -c "service {{ packetbeat_settings.pkg_name }} start"'
+    - name: 'su -m -c "service {{ packetbeat_settings.pkg_name }} restart"'
     - unless: pgrep -f {{ packetbeat_settings.pkg_name }}
