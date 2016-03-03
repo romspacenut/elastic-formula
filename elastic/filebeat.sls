@@ -52,7 +52,7 @@ install-filebeat:
   cmd.wait:
     - use_vt: True
     - user: root
-    - name: 'su -m -c "service {{ filebeat_settings.pkg_name }} restart"'
+    - name: 'su -m -c "service {{ filebeat_settings.pkg_name }} restart 2&>1 >/dev/null"'
     - watch:
       - file: /etc/filebeat/filebeat.yml
 
@@ -69,5 +69,5 @@ restart-{{ filebeat_settings.pkg_name }}:
   cmd.run:
     - use_vt: True
     - user: root
-    - name: 'su -m -c "service {{ filebeat_settings.pkg_name }} restart"'
+    - name: 'su -m -c "service {{ filebeat_settings.pkg_name }} restart 2&>1 >/dev/null"'
     - unless: pgrep -f {{ filebeat_settings.pkg_name }}
