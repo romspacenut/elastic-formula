@@ -285,7 +285,7 @@ output:
     {% if output.logstash.worker is defined %}worker: {{ output.logstash.worker }}{% endif %}
 
     # Set gzip compression level.
-    #compression_level: 3
+    {% if output.logstash.compression_level is defined %}compression_level: {{ output.compression_level.worker }}{% endif %}
 
     # Optional load balance the events between the Logstash hosts
     {% if output.logstash.loadbalance is defined %}loadbalance: true{% endif %}
@@ -403,7 +403,8 @@ logging:
   # Write all logging output to files. Beats automatically rotate files if rotateeverybytes
   # limit is reached.
   {% if logging.to_files is defined %}to_files: {{ logging.to_files }}{% endif %}
-  {% if logging.files is defined %}
+
+  {%- if logging.files is defined %}
   # To enable logging to files, to_files option has to be set to true
   files:
     # The directory where the log files will written to.
@@ -418,7 +419,8 @@ logging:
 
     # Number of rotated log files to keep. Oldest files will be deleted first.
     {% if logging.files.keepfiles is defined %}keepfiles: {{ logging.files.keepfiles }}{% endif %}
-  {% endif %}
+  {%- endif %}
+
   # Enable debug output for selected components. To enable all selectors use ["*"]
   # Other available selectors are beat, publish, service
   # Multiple selectors can be chained.
@@ -427,6 +429,6 @@ logging:
   # Sets log level. The default log level is error.
   # Available log levels are: critical, error, warning, info, debug
   {% if logging.level is defined %}level: {{ logging.level }}{% endif %}
-{% endif %}
+{%- endif %}
 
 
