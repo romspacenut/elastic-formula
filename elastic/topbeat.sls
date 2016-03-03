@@ -36,6 +36,7 @@ install-topbeat:
       {% endif %}
   cmd.wait:
     - use_vt: True
+    - user: root
     - name: 'su -m -c "service {{ topbeat_settings.pkg_name }} restart"'
     - watch:
       - file: /etc/topbeat/topbeat.yml
@@ -50,8 +51,9 @@ install-topbeat:
 #      - pkg: install-topbeat
 #      - file: /etc/topbeat/topbeat.yml
 
-restart-{ topbeat_settings.pkg_name }}:
+restart-{{ topbeat_settings.pkg_name }}:
   cmd.run:
     - use_vt: True
+    - user: root
     - name: 'su -m -c "service {{ topbeat_settings.pkg_name }} restart"'
     - unless: pgrep -f {{ topbeat_settings.pkg_name }}

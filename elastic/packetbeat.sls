@@ -37,6 +37,7 @@ install-packetbeat:
       {% endif %}
   cmd.wait:
     - use_vt: True
+    - user: root
     - name: 'su -m -c "service {{ packetbeat_settings.pkg_name }} restart"'
     - watch:
       - file: /etc/packetbeat/packetbeat.yml
@@ -54,5 +55,6 @@ install-packetbeat:
 restart-{{ packetbeat_settings.pkg_name }}:
   cmd.run:
     - use_vt: True
+    - user: root
     - name: 'su -m -c "service {{ packetbeat_settings.pkg_name }} restart"'
     - unless: pgrep -f {{ packetbeat_settings.pkg_name }}
