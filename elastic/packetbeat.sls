@@ -16,6 +16,7 @@ packetbeat_repo:
 install-packetbeat:
   pkg.installed:
     - name: {{ packetbeat_settings.pkg_name }}
+    - skip_verify: True
     {% if packetbeat_settings.version is defined %}
     - version: {{ packetbeat_settings.version }}
     {% endif %}
