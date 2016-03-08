@@ -31,6 +31,7 @@ logstash-repo:
 install-filebeat:
   pkg.installed:
     - name: {{ filebeat_settings.pkg_name }}
+    - skip_verify: True
     {% if filebeat_settings.version is defined %}
     - version: {{ filebeat_settings.version }}
     {% endif %}

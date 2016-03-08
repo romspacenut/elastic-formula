@@ -16,6 +16,7 @@ topbeat_repo:
 install-topbeat:
   pkg.installed:
     - name: {{ topbeat_settings.pkg_name }}
+    - skip_verify: True
     {% if topbeat_settings.version is defined %}
     - version: {{ topbeat_settings.version }}
     {% endif %}
