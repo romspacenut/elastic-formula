@@ -23,6 +23,7 @@ input:
 # Configure what outputs to use when sending the data collected by the beat.
 # Multiple outputs may be used.
 output:
+  {%- if output.elasticsearch is defined %}
   ### Elasticsearch as output
   elasticsearch:
     # Array of hosts to connect to.
@@ -101,6 +102,7 @@ output:
       # Configure maximum TLS version allowed for connection to logstash
       {% if output.elasticsearch.tls.max_version is defined %}max_version: {{ output.elasticsearch.tls.max_version }}{% endif %}
     {% endif %}
+  {%- endif %}
   {% if output.logstash is defined %}
   ### Logstash as output
   logstash:
