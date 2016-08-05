@@ -187,7 +187,7 @@ filebeat:
 # Configure what outputs to use when sending the data collected by the beat.
 # Multiple outputs may be used.
 output:
-  {% if output.elasticsearch is defined and output.logstash is not defined %}
+  {% if output.elasticsearch is defined and output.logstash is not defined and output.redis is not defined %}
   ### Elasticsearch as output
   elasticsearch:
     # Array of hosts to connect to.
@@ -342,6 +342,39 @@ output:
     # oldest file is deleted and the rest are shifted from last to first. The default
     # is 7 files.
     {% if output.file.number_of_files is defined %}number_of_files: {{ output.file.number_of_files }}{% endif %}
+  {%- endif %}
+  {%- if output.redis is defined %}
+  redis:
+    # Set the host and port where to find Redis.
+    host: "{{ output.file.host }}"
+    port: {{ output.file.port }}
+
+    # Uncomment out this option if you want to store the topology in Redis.
+    # The default is false.
+    {% if output.file.save_topology is defined %}save_topology: {{ output.file.save_topology }}{% endif %}
+
+    # Optional index name. The default is filebeat and generates filebeat keys.
+    {% if output.file.index is defined %}index: "{{ output.file.index }}"{% endif %}
+
+    # Optional Redis database number where the events are stored
+    # The default is 0.
+    {% if output.file.db is defined %}db: {{ output.file.db }}{% endif %}
+
+    # Optional Redis database number where the topology is stored
+    # The default is 1. It must have a different value than db.
+    {% if output.file.db_topology is defined %}db_topology: {{ output.file.db_topology }}{% endif %}
+
+    # Optional password to authenticate with. By default, no
+    # password is set.
+    # password: ""
+
+    # Optional Redis initial connection timeout in seconds.
+    # The default is 5 seconds.
+    {% if output.file.timeout is defined %}timeout: {{ output.file.timeout }}{% endif %}
+
+    # Optional interval for reconnecting to failed Redis connections.
+    # The default is 1 second.
+    {% if output.file.reconnect_interval is defined %}reconnect_interval: {{ output.file.reconnect_interval }}{% endif %}
   {%- endif %}
   {% if output.console is defined %}
   ### Console output
