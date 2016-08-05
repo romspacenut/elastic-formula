@@ -23,7 +23,7 @@ input:
 # Configure what outputs to use when sending the data collected by the beat.
 # Multiple outputs may be used.
 output:
-  {% if output.elasticsearch is defined %}
+  {% if output.elasticsearch is defined and output.logstash is not defined %}
   ### Elasticsearch as output
   elasticsearch:
     # Array of hosts to connect to.
