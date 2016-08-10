@@ -22,7 +22,9 @@ filebeat:
       # Some sample encodings:
       #   plain, utf-8, utf-16be-bom, utf-16be, utf-16le, big5, gb18030, gbk,
       #    hz-gb-2312, euc-kr, euc-jp, iso-2022-jp, shift-jis, ...
-      {% if prospectors.encoding is defined %}encoding: {{ prospectors.encoding }}{% endif %}
+      {%- if prospectors.encoding is defined %}
+      encoding: {{ prospectors.encoding }}
+      {%- endif %}
 
       # Type of the files. Based on this the way the file is read is decided.
       # The different types cannot be mixed in one prospector
@@ -32,7 +34,7 @@ filebeat:
       # * stdin: Reads the standard in
       input_type: {{ prospectors.input_type }}
 
-      {% if prospectors.exclude_lines is defined %}
+      {%- if prospectors.exclude_lines is defined %}
       # Exclude lines. A list of regular expressions to match. It drops the lines that are
       # matching any regular expression from the list. The include_lines is called before
       # exclude_lines. By default, no lines are dropped.
@@ -50,7 +52,7 @@ filebeat:
       {%- endfor %}
       {%- endif %}
 
-      {% if prospectors.exclude_files is defined %}
+      {%- if prospectors.exclude_files is defined %}
       # Exclude files. A list of regular expressions to match. Filebeat drops the files that
       # are matching any regular expression from the list. By default, no files are dropped.
       {%- for exclude_file in prospectors.exclude_files %}
@@ -67,82 +69,113 @@ filebeat:
         {%- endfor %}
       {%- endif %}
 
+      {%- if prospectors.fields_under_root is defined %}
       # Set to true to store the additional fields as top level fields instead
       # of under the "fields" sub-dictionary. In case of name conflicts with the
       # fields added by Filebeat itself, the custom fields overwrite the default
       # fields.
-      {% if prospectors.fields_under_root is defined %}fields_under_root: {{ prospectors.fields_under_root }}{% endif %}
+      fields_under_root: {{ prospectors.fields_under_root }}
+      {%- endif %}
 
+      {%- if prospectors.ignore_older is defined %}
       # Ignore files which were modified more then the defined timespan in the past
       # Time strings like 2h (2 hours), 5m (5 minutes) can be used.
-      {% if prospectors.ignore_older is defined %}ignore_older: {{ prospectors.ignore_older }}{% endif %}
+      ignore_older: {{ prospectors.ignore_older }}
+      {%- endif %}
 
+      {%- if prospectors.document_type is defined %}
       # Type to be published in the 'type' field. For Elasticsearch output,
       # the type defines the document type these entries should be stored
       # in. Default: log
-      {% if prospectors.document_type is defined %}document_type: {{ prospectors.document_type }}{% endif %}
+      document_type: {{ prospectors.document_type }}
+      {%- endif %}
 
+      {%- if prospectors.scan_frequency is defined %}
       # Scan frequency in seconds.
       # How often these files should be checked for changes. In case it is set
       # to 0s, it is done as often as possible. Default: 10s
-      {% if prospectors.scan_frequency is defined %}scan_frequency: {{ prospectors.scan_frequency }}{% endif %}
+      scan_frequency: {{ prospectors.scan_frequency }}
+      {%- endif %}
 
+      {%- if prospectors.harvester_buffer_size is defined %}
       # Defines the buffer size every harvester uses when fetching the file
-      {% if prospectors.harvester_buffer_size is defined %}harvester_buffer_size: {{ prospectors.harvester_buffer_size }}{% endif %}
+      harvester_buffer_size: {{ prospectors.harvester_buffer_size }}
+      {%- endif %}
 
+      {%- if prospectors.max_bytes is defined %}
       # Maximum number of bytes a single log event can have
       # All bytes after max_bytes are discarded and not sent. The default is 10MB.
       # This is especially useful for multiline log messages which can get large.
-      {% if prospectors.max_bytes is defined %}max_bytes: {{ prospectors.max_bytes }}{% endif %}
+      max_bytes: {{ prospectors.max_bytes }}
+      {%- endif %}
 
-      {% if prospectors.multiline is defined %}
+      {%- if prospectors.multiline is defined %}
       # Mutiline can be used for log messages spanning multiple lines. This is common
       # for Java Stack Traces or C-Line Continuation
       multiline:
+        {%- if prospectors.multiline.pattern is defined %}
         # The regexp Pattern that has to be matched. The example pattern matches all lines starting with [
-        {% if prospectors.multiline.pattern is defined %}pattern: {{ prospectors.multiline.pattern }}{% endif %}
+        pattern: {{ prospectors.multiline.pattern }}
+        {%- endif %}
 
+        {%- if prospectors.multiline.negate is defined %}
         # Defines if the pattern set under pattern should be negated or not. Default is false.
-        {% if prospectors.multiline.negate is defined %}negate: {{ prospectors.multiline.negate }}{% endif %}
+        negate: {{ prospectors.multiline.negate }}
+        {%- endif %}
 
+        {%- if prospectors.multiline.match is defined %}
         # Match can be set to "after" or "before". It is used to define if lines should be append to a pattern
         # that was (not) matched before or after or as long as a pattern is not matched based on negate.
         # Note: After is the equivalent to previous and before is the equivalent to to next in Logstash
-        {% if prospectors.multiline.match is defined %}match: {{ prospectors.multiline.match }}{% endif %}
+        match: {{ prospectors.multiline.match }}
+        {%- endif %}
 
         # The maximum number of lines that are combined to one event.
         # In case there are more the max_lines the additional lines are discarded.
         # Default is 500
-        {% if prospectors.multiline.max_lines is defined %}max_lines: {{ prospectors.multiline.max_lines }}{% endif %}
+        {%- if prospectors.multiline.max_lines is defined %}
+        max_lines: {{ prospectors.multiline.max_lines }}
+        {%- endif %}
 
+        {%- if prospectors.multiline.timeout is defined %}
         # After the defined timeout, an multiline event is sent even if no new pattern was found to start a new event
         # Default is 5s.
-        {% if prospectors.multiline.timeout is defined %}timeout: {{ prospectors.multiline.timeout }}{% endif %}
+        timeout: {{ prospectors.multiline.timeout }}
+        {%- endif %}
       {%- endif %}
 
+      {%- if prospectors.tail_files is defined %}
       # Setting tail_files to true means filebeat starts readding new files at the end
       # instead of the beginning. If this is used in combination with log rotation
       # this can mean that the first entries of a new file are skipped.
-      {% if prospectors.tail_files is defined %}tail_files: {{ prospectors.tail_files }}{% endif %}
+      tail_files: {{ prospectors.tail_files }}
+      {%- endif %}
 
+      {%- if prospectors.backoff is defined %}
       # Backoff values define how agressively filebeat crawls new files for updates
       # The default values can be used in most cases. Backoff defines how long it is waited
       # to check a file again after EOF is reached. Default is 1s which means the file
       # is checked every second if new lines were added. This leads to a near real time crawling.
       # Every time a new line appears, backoff is reset to the initial value.
-      {% if prospectors.backoff is defined %}backoff: {{ prospectors.backoff }}{% endif %}
+      backoff: {{ prospectors.backoff }}
+      {%- endif %}
 
+      {%- if prospectors.encoding is defined %}
       # Max backoff defines what the maximum backoff time is. After having backed off multiple times
       # from checking the files, the waiting time will never exceed max_backoff idenependent of the
       # backoff factor. Having it set to 10s means in the worst case a new line can be added to a log
       # file after having backed off multiple times, it takes a maximum of 10s to read the new line
-      {% if prospectors.encoding is defined %}max_backoff: {{ prospectors.max_backoff }}{% endif %}
+      max_backoff: {{ prospectors.max_backoff }}
+      {%- endif %}
 
+      {%- if prospectors.backoff_factor is defined %}
       # The backoff factor defines how fast the algorithm backs off. The bigger the backoff factor,
       # the faster the max_backoff value is reached. If this value is set to 1, no backoff will happen.
       # The backoff value will be multiplied each time with the backoff_factor until max_backoff is reached
-      {% if prospectors.backoff_factor is defined %}backoff_factor: {{ prospectors.backoff_factor }}{% endif %}
+      backoff_factor: {{ prospectors.backoff_factor }}
+      {%- endif %}
 
+      {%- if prospectors.force_close_files is defined %}
       # This option closes a file, as soon as the file name changes.
       # This config option is recommended on windows only. Filebeat keeps the files it's reading open. This can cause
       # issues when the file is removed, as the file will not be fully removed until also Filebeat closes
@@ -151,32 +184,39 @@ filebeat:
       # on rotate files. It can happen that after file rotation the beginning of the new
       # file is skipped, as the reading starts at the end. We recommend to leave this option on false
       # but lower the ignore_older value to release files faster.
-      {% if prospectors.force_close_files is defined %}force_close_files: {{ prospectors.force_close_files }}{% endif %}
+      force_close_files: {{ prospectors.force_close_files }}
+      {%- endif %}
 
     # Additional prospector
     #-
       # Configuration to use stdin input
       #input_type: stdin
 
+  {%- if prospectors.spool_size is defined %}
   # General filebeat configuration options
   #
   # Event count spool threshold - forces network flush if exceeded
-  {% if prospectors.spool_size is defined %}spool_size: {{ prospectors.spool_size }}{% endif %}
+  spool_size: {{ prospectors.spool_size }}
+  {%- endif %}
 
+  {%- if prospectors.idle_timeout is defined %}
   # Defines how often the spooler is flushed. After idle_timeout the spooler is
   # Flush even though spool_size is not reached.
-  {% if prospectors.idle_timeout is defined %}idle_timeout: {{ prospectors.idle_timeout }}{% endif %}
+  idle_timeout: {{ prospectors.idle_timeout }}
+  {%- endif %}
 
   # Name of the registry file. Per default it is put in the current working
   # directory. In case the working directory is changed after when running
   # filebeat again, indexing starts from the beginning again.
   registry_file: {{ prospectors.registry_file }}
 
+  {%- if prospectors.config_dir is defined %}
   # Full Path to directory with additional prospector configuration files. Each file must end with .yml
   # These config files must have the full filebeat config part inside, but only
   # the prospector part is processed. All global options like spool_size are ignored.
   # The config_dir MUST point to a different directory then where the main filebeat config file is in.
-  {% if prospectors.config_dir is defined %}config_dir: {{ prospectors.config_dir }}{% endif %}
+  config_dir: {{ prospectors.config_dir }}
+  {%- endif %}
 
 ###############################################################################
 ############################# Libbeat Config ##################################
@@ -187,7 +227,7 @@ filebeat:
 # Configure what outputs to use when sending the data collected by the beat.
 # Multiple outputs may be used.
 output:
-  {% if output.elasticsearch is defined and output.logstash is not defined and output.redis is not defined %}
+  {%- if output.elasticsearch is defined and output.logstash is not defined and output.redis is not defined %}
   ### Elasticsearch as output
   elasticsearch:
     # Array of hosts to connect to.
@@ -197,77 +237,119 @@ output:
     hosts: [{{ "'%s'" %"','".join(output.elasticsearch.hosts) }}]
 
     # Optional protocol and basic auth credentials.
-    {% if output.elasticsearch.protocol is defined %}protocol: "{{ output.elasticsearch.protocol }}"{% endif %}
-    {% if output.elasticsearch.username is defined %}username: "{{ output.elasticsearch.username }}"{% endif %}
-    {% if output.elasticsearch.password is defined %}password: "{{ output.elasticsearch.password }}"{% endif %}
+    {%- if output.elasticsearch.protocol is defined %}
+    protocol: "{{ output.elasticsearch.protocol }}"
+    {%- endif %}
+    {%- if output.elasticsearch.username is defined %}
+    username: "{{ output.elasticsearch.username }}"
+    {%- endif %}
+    {%- if output.elasticsearch.password is defined %}
+    password: "{{ output.elasticsearch.password }}"
+    {%- endif %}
 
+    {%- if output.elasticsearch.worker is defined %}
     # Number of workers per Elasticsearch host.
-    {% if output.elasticsearch.worker is defined %}worker: {{ output.elasticsearch.worker }}{% endif %}
+    worker: {{ output.elasticsearch.worker }}
+    {%- endif %}
 
+    {%- if output.elasticsearch.index is defined %}
     # Optional index name. The default is "filebeat" and generates
     # [filebeat-]YYYY.MM.DD keys.
-    {% if output.elasticsearch.index is defined %}index: "{{ output.elasticsearch.index }}"{% endif %}
+    index: "{{ output.elasticsearch.index }}"
+    {%- endif %}
 
+    {%- if output.elasticsearch.path is defined %}
     # Optional HTTP Path
-    {% if output.elasticsearch.path is defined %}path: "{{ output.elasticsearch.path }}"{% endif %}
+    path: "{{ output.elasticsearch.path }}"
+    {%- endif %}
 
+    {%- if output.elasticsearch.proxy_url is defined %}
     # Proxy server url
-    {% if output.elasticsearch.proxy_url is defined %}proxy_url: "{{ output.elasticsearch.proxy_url }}"{% endif %}
+    proxy_url: "{{ output.elasticsearch.proxy_url }}"
+    {%- endif %}
 
+    {%- if output.elasticsearch.max_retries is defined %}
     # The number of times a particular Elasticsearch index operation is attempted. If
     # the indexing operation doesn't succeed after this many retries, the events are
     # dropped. The default is 3.
-    {% if output.elasticsearch.max_retries is defined %}max_retries: {{ output.elasticsearch.max_retries }}{% endif %}
+    max_retries: {{ output.elasticsearch.max_retries }}
+    {%- endif %}
 
+    {%- if output.elasticsearch.bulk_max_size is defined %}
     # The maximum number of events to bulk in a single Elasticsearch bulk API index request.
     # The default is 50.
-    {% if output.elasticsearch.bulk_max_size is defined %}bulk_max_size: {{ output.elasticsearch.bulk_max_size }}{% endif %}
+    bulk_max_size: {{ output.elasticsearch.bulk_max_size }}
+    {%- endif %}
 
+    {%- if output.elasticsearch.timeout is defined %}
     # Configure http request timeout before failing an request to Elasticsearch.
-    {% if output.elasticsearch.timeout is defined %}timeout: {{ output.elasticsearch.timeout }}{% endif %}
+    timeout: {{ output.elasticsearch.timeout }}
+    {%- endif %}
 
+    {%- if output.elasticsearch.flush_interval is defined %}
     # The number of seconds to wait for new events between two bulk API index requests.
     # If `bulk_max_size` is reached before this interval expires, addition bulk index
     # requests are made.
-    {% if output.elasticsearch.flush_interval is defined %}flush_interval: {{ output.elasticsearch.flush_interval }}{% endif %}
+    flush_interval: {{ output.elasticsearch.flush_interval }}
+    {%- endif %}
 
+    {%- if output.elasticsearch.save_topology is defined %}
     # Boolean that sets if the topology is kept in Elasticsearch. The default is
     # false. This option makes sense only for Packetbeat.
-    {% if output.elasticsearch.save_topology is defined %}save_topology: {{ output.elasticsearch.save_topology }}{% endif %}
+    save_topology: {{ output.elasticsearch.save_topology }}
+    {%- endif %}
 
     # The time to live in seconds for the topology information that is stored in
     # Elasticsearch. The default is 15 seconds.
-    {% if output.elasticsearch.topology_expire is defined %}topology_expire: {{ output.elasticsearch.topology_expire }}{% endif %}
+    {%- if output.elasticsearch.topology_expire is defined %}
+    topology_expire: {{ output.elasticsearch.topology_expire }}
+    {%- endif %}
 
-    {% if output.elasticsearch.tls is defined %}
+    {%- if output.elasticsearch.tls is defined %}
     # tls configuration. By default is off.
     tls:
+      {%- if output.elasticsearch.tls.certificate_authorities is defined %}
       # List of root certificates for HTTPS server verifications
-      {% if output.elasticsearch.tls.certificate_authorities is defined %}certificate_authorities: [{{ "'%s'" %"','".join(output.elasticsearch.tls.certificate_authorities) }}]{% endif %}
+      certificate_authorities: [{{ "'%s'" %"','".join(output.elasticsearch.tls.certificate_authorities) }}]
+      {%- endif %}
 
+      {%- if output.elasticsearch.tls.certificate is defined %}
       # Certificate for TLS client authentication
-      {% if output.elasticsearch.tls.certificate is defined %}certificate: "{{ output.elasticsearch.tls.certificate }}"{% endif %}
+      certificate: "{{ output.elasticsearch.tls.certificate }}"
+      {%- endif %}
 
+      {%- if output.elasticsearch.tls.certificate_key is defined %}
       # Client Certificate Key
-      {% if output.elasticsearch.tls.certificate_key is defined %}certificate_key: "{{ output.elasticsearch.tls.certificate_key }}"{% endif %}
+      certificate_key: "{{ output.elasticsearch.tls.certificate_key }}"
+      {%- endif %}
 
+      {%- if output.elasticsearch.tls.insecure is defined %}
       # Controls whether the client verifies server certificates and host name.
       # If insecure is set to true, all server host names and certificates will be
       # accepted. In this mode TLS based connections are susceptible to
       # man-in-the-middle attacks. Use only for testing.
-      {% if output.elasticsearch.tls.insecure is defined %}insecure: {{ output.elasticsearch.tls.insecure }}{% endif %}
+      insecure: {{ output.elasticsearch.tls.insecure }}
+      {%- endif %}
 
+      {%- if output.elasticsearch.tls.cipher_suites is defined %}
       # Configure cipher suites to be used for TLS connections
-      {% if output.elasticsearch.tls.cipher_suites is defined %}cipher_suites: [{{ "'%s'" %"','".join(output.elasticsearch.tls.cipher_suites) }}]{% endif %}
+      cipher_suites: [{{ "'%s'" %"','".join(output.elasticsearch.tls.cipher_suites) }}]
+      {%- endif %}
 
+      {%- if output.elasticsearch.tls.curve_types is defined %}
       # Configure curve types for ECDHE based cipher suites
-      {% if output.elasticsearch.tls.curve_types is defined %}curve_types: [{{ "'%s'" %"','".join(output.elasticsearch.tls.curve_types) }}]{% endif %}
+      curve_types: [{{ "'%s'" %"','".join(output.elasticsearch.tls.curve_types) }}]
+      {%- endif %}
 
+      {%- if output.elasticsearch.tls.min_version is defined %}
       # Configure minimum TLS version allowed for connection to logstash
-      {% if output.elasticsearch.tls.min_version is defined %}min_version: {{ output.elasticsearch.tls.min_version }}{% endif %}
+      min_version: {{ output.elasticsearch.tls.min_version }}
+      {%- endif %}
 
+      {%- if output.elasticsearch.tls.max_version is defined %}
       # Configure maximum TLS version allowed for connection to logstash
-      {% if output.elasticsearch.tls.max_version is defined %}max_version: {{ output.elasticsearch.tls.max_version }}{% endif %}
+      max_version: {{ output.elasticsearch.tls.max_version }}
+      {%- endif %}
     {%- endif %}
   {%- endif %}
   {%- if output.logstash is defined %}
@@ -281,67 +363,93 @@ output:
       {%- endfor %}
     {%- endif %}
 
+    {%- if output.logstash.worker is defined %}
     # Number of workers per Logstash host.
-    {% if output.logstash.worker is defined %}worker: {{ output.logstash.worker }}{% endif %}
+    worker: {{ output.logstash.worker }}
+    {%- endif %}
 
+    {%- if output.logstash.compression_level is defined %}
     # Set gzip compression level.
-    {% if output.logstash.compression_level is defined %}compression_level: {{ output.compression_level.worker }}{% endif %}
+    compression_level: {{ output.compression_level.worker }}
+    {%- endif %}
 
+    {%- if output.logstash.loadbalance is defined %}
     # Optional load balance the events between the Logstash hosts
-    {% if output.logstash.loadbalance is defined %}loadbalance: true{% endif %}
+    loadbalance: true
+    {%- endif %}
 
+    {%- if output.logstash.index is defined %}
     # Optional index name. The default index name depends on the each beat.
     # For Packetbeat, the default is set to packetbeat, for Topbeat
     # top topbeat and for Filebeat to filebeat.
-    {% if output.logstash.index is defined %}index: {{ output.logstash.index }}{% endif %}
+    index: {{ output.logstash.index }}
+    {%- endif %}
 
     {%- if output.logstash.tls is defined %}
     # Optional TLS. By default is off.
     tls:
       # List of root certificates for HTTPS server verifications
-      {% if output.logstash.tls.certificate_authorities is defined %}
+      {%- if output.logstash.tls.certificate_authorities is defined %}
       certificate_authorities:
         {%- for value in output.logstash.tls.certificate_authorities %}
         - {{ value }}
         {%- endfor %}
-      {% endif %}
+      {%- endif %}
 
       # Certificate for TLS client authentication
-      {% if output.logstash.tls.certificate is defined %}certificate: "{{ output.logstash.tls.certificate }}"{% endif %}
+      {%- if output.logstash.tls.certificate is defined %}
+      certificate: "{{ output.logstash.tls.certificate }}"
+      {%- endif %}
 
       # Client Certificate Key
-      {% if output.logstash.tls.certificate_key is defined %}certificate_key: "{{ output.logstash.tls.certificate_key }}"{% endif %}
+      {%- if output.logstash.tls.certificate_key is defined %}
+      certificate_key: "{{ output.logstash.tls.certificate_key }}"
+      {%- endif %}
 
       # Controls whether the client verifies server certificates and host name.
       # If insecure is set to true, all server host names and certificates will be
       # accepted. In this mode TLS based connections are susceptible to
       # man-in-the-middle attacks. Use only for testing.
-      {% if output.logstash.tls.insecure is defined %}insecure: {{ output.logstash.tls.insecure }}{% endif %}
+      {%- if output.logstash.tls.insecure is defined %}
+      insecure: {{ output.logstash.tls.insecure }}
+      {%- endif %}
 
       # Configure cipher suites to be used for TLS connections
-      {% if output.logstash.tls.cipher_suites is defined %}cipher_suites: [{{ "'%s'" %"','".join(output.logstash.tls.cipher_suites) }}]{% endif %}
+      {%- if output.logstash.tls.cipher_suites is defined %}
+      cipher_suites: [{{ "'%s'" %"','".join(output.logstash.tls.cipher_suites) }}]
+      {%- endif %}
 
       # Configure curve types for ECDHE based cipher suites
-      {% if output.logstash.tls.curve_types is defined %}curve_types: [{{ "'%s'" %"','".join(output.logstash.tls.curve_types) }}]{% endif %}
+      {%- if output.logstash.tls.curve_types is defined %}
+      curve_types: [{{ "'%s'" %"','".join(output.logstash.tls.curve_types) }}]
+      {%- endif %}
     {%- endif %}
   {%- endif %}
-  {% if output.file is defined %}
+  {%- if output.file is defined %}
   ### File as output
   file:
+    {%- if output.file.path is defined %}
     # Path to the directory where to save the generated files. The option is mandatory.
-    {% if output.file.path is defined %}path: "{{ output.file.path }}"{% endif %}
+    path: "{{ output.file.path }}"
+    {%- endif %}
 
+    {%- if output.file.filename is defined %}
     # Name of the generated files. The default is `topbeat` and it generates files: `topbeat`, `topbeat.1`, `topbeat.2`, etc.
-    {% if output.file.filename is defined %}filename: {{ output.file.filename }}{% endif %}
+    filename: {{ output.file.filename }}
+    {%- endif %}
 
+    {%- if output.file.rotate_every_kb is defined %}
     # Maximum size in kilobytes of each file. When this size is reached, the files are
     # rotated. The default value is 10 MB.
-    {% if output.file.rotate_every_kb is defined %}rotate_every_kb: {{ output.file.rotate_every_kb }}{% endif %}
+    rotate_every_kb: {{ output.file.rotate_every_kb }}
+    {%- endif %}
 
+    {%- if output.file.number_of_files is defined %}
     # Maximum number of files under path. When this number of files is reached, the
     # oldest file is deleted and the rest are shifted from last to first. The default
     # is 7 files.
-    {% if output.file.number_of_files is defined %}number_of_files: {{ output.file.number_of_files }}{% endif %}
+    number_of_files: {{ output.file.number_of_files }}
+    {%- endif %}
   {%- endif %}
   {%- if output.redis is defined %}
   redis:
@@ -349,70 +457,93 @@ output:
     host: "{{ output.file.host }}"
     port: {{ output.file.port }}
 
+    {%- if output.file.save_topology is defined %}
     # Uncomment out this option if you want to store the topology in Redis.
     # The default is false.
-    {% if output.file.save_topology is defined %}save_topology: {{ output.file.save_topology }}{% endif %}
+    save_topology: {{ output.file.save_topology }}
+    {%- endif %}
 
+    {%- if output.file.index is defined %}
     # Optional index name. The default is filebeat and generates filebeat keys.
-    {% if output.file.index is defined %}index: "{{ output.file.index }}"{% endif %}
+    index: "{{ output.file.index }}"
+    {%- endif %}
 
+    {%- if output.file.db is defined %}
     # Optional Redis database number where the events are stored
     # The default is 0.
-    {% if output.file.db is defined %}db: {{ output.file.db }}{% endif %}
+    db: {{ output.file.db }}
+    {%- endif %}
 
+    {%- if output.file.db_topology is defined %}
     # Optional Redis database number where the topology is stored
     # The default is 1. It must have a different value than db.
-    {% if output.file.db_topology is defined %}db_topology: {{ output.file.db_topology }}{% endif %}
+    db_topology: {{ output.file.db_topology }}
+    {%- endif %}
 
     # Optional password to authenticate with. By default, no
     # password is set.
     # password: ""
 
+    {%- if output.file.timeout is defined %}
     # Optional Redis initial connection timeout in seconds.
     # The default is 5 seconds.
-    {% if output.file.timeout is defined %}timeout: {{ output.file.timeout }}{% endif %}
+    timeout: {{ output.file.timeout }}
+    {%- endif %}
 
+    {%- if output.file.reconnect_interval is defined %}
     # Optional interval for reconnecting to failed Redis connections.
     # The default is 1 second.
-    {% if output.file.reconnect_interval is defined %}reconnect_interval: {{ output.file.reconnect_interval }}{% endif %}
+    reconnect_interval: {{ output.file.reconnect_interval }}
+    {%- endif %}
   {%- endif %}
-  {% if output.console is defined %}
+  {%- if output.console is defined %}
   ### Console output
   console:
+    {%- if output.console.pretty is defined %}
     # Pretty print json event
-    {% if output.console.pretty is defined %}pretty: {{ output.console.pretty }}{% endif %}
+    pretty: {{ output.console.pretty }}
+    {%- endif %}
   {%- endif %}
-
-{% if shipper is defined %}
+{%- if shipper is defined %}
 ############################# Shipper #########################################
 shipper:
+  {%- if shipper.name is defined %}
   # The name of the shipper that publishes the network data. It can be used to group
   # all the transactions sent by a single shipper in the web interface.
   # If this options is not defined, the hostname is used.
-  {% if shipper.name is defined %}name: {{ shipper.name }}{% endif %}
+  name: {{ shipper.name }}
+  {%- endif %}
 
+  {%- if shipper.tags is defined %}
   # The tags of the shipper are included in their own field with each
   # transaction published. Tags make it easy to group servers by different
   # logical properties.
-  {% if shipper.tags is defined %}tags: [{{ "'%s'" %"','".join(shipper.tags) }}]{% endif %}
+  tags: [{{ "'%s'" %"','".join(shipper.tags) }}]
+  {%- endif %}
 
+  {%- if shipper.ignore_outgoing is defined %}
   # Uncomment the following if you want to ignore transactions created
   # by the server on which the shipper is installed. This option is useful
   # to remove duplicates if shippers are installed on multiple servers.
-  {% if shipper.ignore_outgoing is defined %}ignore_outgoing: {{ shipper.ignore_outgoing }}{% endif %}
+  ignore_outgoing: {{ shipper.ignore_outgoing }}
+  {%- endif %}
 
+  {%- if shipper.refresh_topology_freq is defined %}
   # How often (in seconds) shippers are publishing their IPs to the topology map.
   # The default is 10 seconds.
-  {% if shipper.refresh_topology_freq is defined %}refresh_topology_freq: {{ shipper.refresh_topology_freq }}{% endif %}
+  refresh_topology_freq: {{ shipper.refresh_topology_freq }}
+  {%- endif %}
 
+  {%- if shipper.topology_expire is defined %}
   # Expiration time (in seconds) of the IPs published by a shipper to the topology map.
   # All the IPs will be deleted afterwards. Note, that the value must be higher than
   # refresh_topology_freq. The default is 15 seconds.
-  {% if shipper.topology_expire is defined %}topology_expire: {{ shipper.topology_expire }}{% endif %}
+  topology_expire: {{ shipper.topology_expire }}
+  {%- endif %}
 
+  {%- if shipper.geoip.paths is defined %}
   # Configure local GeoIP database support.
   # If no paths are not configured geoip is disabled.
-  {% if shipper.geoip.paths is defined %}
   geoip:
     paths:
       {%- for path in shipper.geoip.paths %}
@@ -421,47 +552,60 @@ shipper:
   {%- endif %}
 {%- endif %}
 
-{% if logging is defined %}
+{%- if logging is defined %}
 ############################# Logging #########################################
 
 # There are three options for the log ouput: syslog, file, stderr.
 # Under Windos systems, the log files are per default sent to the file output,
 # under all other system per default to syslog.
 logging:
-
+  {%- if logging.to_syslog is defined %}
   # Send all logging output to syslog. On Windows default is false, otherwise
   # default is true.
-  {% if logging.to_syslog is defined %}to_syslog: {{ logging.to_syslog }}{% endif %}
-
-  # Write all logging output to files. Beats automatically rotate files if rotateeverybytes
-  # limit is reached.
-  {% if logging.to_files is defined %}to_files: {{ logging.to_files }}{% endif %}
-
-  {% if logging.files is defined %}
-  # To enable logging to files, to_files option has to be set to true
-  files:
-    # The directory where the log files will written to.
-    {% if logging.files.path is defined %}path: {{ logging.files.path }}{% endif %}
-
-    # The name of the files where the logs are written to.
-    {% if logging.files.name is defined %}name: {{ logging.files.name }}{% endif %}
-
-    # Configure log file size limit. If limit is reached, log file will be
-    # automatically rotated
-    {% if logging.files.rotateeverybytes is defined %}rotateeverybytes: {{ logging.files.rotateeverybytes }} # = 10MB{% endif %}
-
-    # Number of rotated log files to keep. Oldest files will be deleted first.
-    {% if logging.files.keepfiles is defined %}keepfiles: {{ logging.files.keepfiles }}{% endif %}
+  to_syslog: {{ logging.to_syslog }}
   {%- endif %}
 
+  {%- if logging.to_files is defined %}
+  # Write all logging output to files. Beats automatically rotate files if rotateeverybytes
+  # limit is reached.
+  to_files: {{ logging.to_files }}
+  {%- endif %}
+
+  {%- if logging.files is defined %}
+  # To enable logging to files, to_files option has to be set to true
+  files:
+    {%- if logging.files.path is defined %}
+    # The directory where the log files will written to.
+    path: {{ logging.files.path }}
+    {%- endif %}
+
+    {%- if logging.files.name is defined %}
+    # The name of the files where the logs are written to.
+    name: {{ logging.files.name }}
+    {%- endif %}
+
+    {%- if logging.files.rotateeverybytes is defined %}
+    # Configure log file size limit. If limit is reached, log file will be
+    # automatically rotated
+    rotateeverybytes: {{ logging.files.rotateeverybytes }} # = 10MB
+    {%- endif %}
+
+    # Number of rotated log files to keep. Oldest files will be deleted first.
+    {%- if logging.files.keepfiles is defined %}
+    keepfiles: {{ logging.files.keepfiles }}
+    {%- endif %}
+  {%- endif %}
+
+  {%- if logging.selectors is defined %}
   # Enable debug output for selected components. To enable all selectors use ["*"]
   # Other available selectors are beat, publish, service
   # Multiple selectors can be chained.
-  {% if logging.selectors is defined %}selectors: [{{ "'%s'" %"','".join(logging.selectors) }}]{% endif %}
+  selectors: [{{ "'%s'" %"','".join(logging.selectors) }}]
+  {%- endif %}
 
+  {%- if logging.level is defined %}
   # Sets log level. The default log level is error.
   # Available log levels are: critical, error, warning, info, debug
-  {% if logging.level is defined %}level: {{ logging.level }}{% endif %}
+  level: {{ logging.level }}
+  {%- endif %}
 {%- endif %}
-
-
