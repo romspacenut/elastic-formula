@@ -1,0 +1,32 @@
+{% set os_map = salt['grains.filter_by']({
+    'Debian': {
+        'pkgrepo': 'deb https://packages.elastic.co/logstash/2.3/debian stable main',
+        'key_url': 'https://packages.elastic.co/GPG-KEY-elasticsearch',
+        'file': '/etc/apt/sources.list.d/filebeat.list',
+        'pkg_name': 'logstash',
+        'service_name': 'logstash',
+        'skip_verify': 'True'
+    },
+    'RedHat': {
+        'pkgrepo': '',
+        'key_url': '',
+        'file': '',
+        'pkg_name': 'filebeat',
+        'service_name': 'filebeat',
+        'skip_verify': 'True'
+    },
+}, grain='os_family', merge=salt['pillar.get']('elastic:logstash:lookup'), default='Debian') %}
+
+{% set default_settings = {
+    'logstash': {
+    }
+}%}
+
+{# Uncomment out to merge in the settings for testing #}
+{#% do default_settings.update(full_settings) %#}
+
+{# Merge os_map into default_settings dictionary #}
+{% do default_settings.logstash.update(os_map) %}
+
+{# Update settings defaults from pillar data #}
+{% set logstash_settings = salt['pillar.get']('elastic:logstash', default=default_settings.logstash, merge=True) %}
