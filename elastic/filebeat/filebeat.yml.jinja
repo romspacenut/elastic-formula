@@ -456,53 +456,85 @@ output:
     # Set the host and port where to find Redis.
     {%- if output.redis.hosts is defined %}
     hosts:
-    {%- if type(output.redis.hosts) == type(tuple()) %}
       {%- for host in output.redis.hosts %}
       - {{ host }}
       {%- endfor %}
-    {%- else %}
-      - {{ output.redis.hosts }}
+    {%- endif %}
+    {%- if output.redis.port is defined %}
     port: {{ output.redis.port }}
     {%- endif %}
-    {%- endif %}
 
-    {%- if output.file.save_topology is defined %}
+    {%- if output.redis.save_topology is defined %}
     # Uncomment out this option if you want to store the topology in Redis.
     # The default is false.
-    save_topology: {{ output.file.save_topology }}
+    save_topology: {{ output.redis.save_topology }}
     {%- endif %}
 
-    {%- if output.file.index is defined %}
+    {%- if output.redis.index is defined %}
     # Optional index name. The default is filebeat and generates filebeat keys.
-    index: "{{ output.file.index }}"
+    index: "{{ output.redis.index }}"
     {%- endif %}
 
-    {%- if output.file.db is defined %}
+    {%- if output.redis.db is defined %}
     # Optional Redis database number where the events are stored
     # The default is 0.
-    db: {{ output.file.db }}
+    db: {{ output.redis.db }}
     {%- endif %}
 
-    {%- if output.file.db_topology is defined %}
+    {%- if output.redis.db_topology is defined %}
     # Optional Redis database number where the topology is stored
     # The default is 1. It must have a different value than db.
-    db_topology: {{ output.file.db_topology }}
+    db_topology: {{ output.redis.db_topology }}
     {%- endif %}
 
     # Optional password to authenticate with. By default, no
     # password is set.
     # password: ""
 
-    {%- if output.file.timeout is defined %}
+    {%- if output.redis.timeout is defined %}
     # Optional Redis initial connection timeout in seconds.
     # The default is 5 seconds.
-    timeout: {{ output.file.timeout }}
+    timeout: {{ output.redis.timeout }}
     {%- endif %}
 
-    {%- if output.file.reconnect_interval is defined %}
+    {%- if output.redis.reconnect_interval is defined %}
     # Optional interval for reconnecting to failed Redis connections.
     # The default is 1 second.
-    reconnect_interval: {{ output.file.reconnect_interval }}
+    reconnect_interval: {{ output.redis.reconnect_interval }}
+    {%- endif %}
+
+    {%- if output.redis.datatype is defined %}
+    datatype: "{{ output.redis.datatype }}"
+    {%- endif %}
+    {%- if output.redis.host_topology is defined %}
+    host_topology: "{{ output.redis.host_topology }}"
+    {%- endif %}
+    {%- if output.redis.password_topology is defined %}
+    password_topology: "{{ output.redis.password_topology }}"
+    {%- endif %}
+    {%- if output.redis.worker is defined %}
+    worker: "{{ output.redis.worker }}"
+    {%- endif %}
+    {%- if output.redis.loadbalance is defined %}
+    loadbalance: "{{ output.redis.loadbalance }}"
+    {%- endif %}
+    {%- if output.redis.timeout is defined %}
+    timeout: "{{ output.redis.timeout }}"
+    {%- endif %}
+    {%- if output.redis.max_retries is defined %}
+    max_retries: "{{ output.redis.max_retries }}"
+    {%- endif %}
+    {%- if output.redis.bulk_max_size is defined %}
+    bulk_max_size: "{{ output.redis.bulk_max_size }}"
+    {%- endif %}
+    {%- if output.redis.tls is defined %}
+    tls: "{{ output.redis.tls }}"
+    {%- endif %}
+    {%- if output.redis.proxy_url is defined %}
+    proxy_url: "{{ output.redis.proxy_url }}"
+    {%- endif %}
+    {%- if output.redis.proxy_use_local_resolver is defined %}
+    proxy_use_local_resolver: "{{ output.redis.proxy_use_local_resolver }}"
     {%- endif %}
   {%- endif %}
   {%- if output.console is defined %}
