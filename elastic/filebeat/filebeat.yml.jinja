@@ -460,6 +460,9 @@ output:
       - {{ host }}
       {%- endfor %}
     {%- endif %}
+    {%- if output.redis.host is defined %}
+    host: {{ output.redis.host }}
+    {%- endif %}
     {%- if output.redis.port is defined %}
     port: {{ output.redis.port }}
     {%- endif %}
