@@ -487,9 +487,11 @@ output:
     db_topology: {{ output.redis.db_topology }}
     {%- endif %}
 
+    {%- if output.redis.password is defined %}
     # Optional password to authenticate with. By default, no
     # password is set.
-    # password: ""
+    password: "{{ output.redis.password }}"
+    {%- endif %}
 
     {%- if output.redis.timeout is defined %}
     # Optional Redis initial connection timeout in seconds.
