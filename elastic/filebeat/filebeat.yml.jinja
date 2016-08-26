@@ -454,8 +454,17 @@ output:
   {%- if output.redis is defined %}
   redis:
     # Set the host and port where to find Redis.
-    host: "{{ output.file.host }}"
-    port: {{ output.file.port }}
+    {%- if output.redis.hosts is defined %}
+    hosts:
+    {%- if type(output.redis.hosts) == type(tuple()) %}
+      {%- for host in output.redis.hosts %}
+      - {{ host }}
+      {%- endfor %}
+    {%- else %}
+      - {{ output.redis.hosts }}
+    port: {{ output.redis.port }}
+    {%- endif %}
+    {%- endif %}
 
     {%- if output.file.save_topology is defined %}
     # Uncomment out this option if you want to store the topology in Redis.
