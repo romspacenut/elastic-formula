@@ -17,12 +17,12 @@ filebeat:
         {%- endfor %}
         #- c:\programdata\elasticsearch\logs\*
 
+      {%- if prospectors.encoding is defined %}
       # Configure the file encoding for reading files with international characters
       # following the W3C recommendation for HTML5 (http://www.w3.org/TR/encoding).
       # Some sample encodings:
       #   plain, utf-8, utf-16be-bom, utf-16be, utf-16le, big5, gb18030, gbk,
       #    hz-gb-2312, euc-kr, euc-jp, iso-2022-jp, shift-jis, ...
-      {%- if prospectors.encoding is defined %}
       encoding: {{ prospectors.encoding }}
       {%- endif %}
 
@@ -60,9 +60,9 @@ filebeat:
       {%- endfor %}
       {%- endif %}
       
+      {%- if prospectors.fields is defined %}
       # Optional additional fields. These field can be freely picked
       # to add additional information to the crawled log files for filtering
-      {%- if prospectors.fields is defined %}
       fields:
         {%- for key, value in prospectors.fields.items() %}
         {{ key }}: {{ value }}
@@ -388,39 +388,39 @@ output:
     {%- if output.logstash.tls is defined %}
     # Optional TLS. By default is off.
     tls:
-      # List of root certificates for HTTPS server verifications
       {%- if output.logstash.tls.certificate_authorities is defined %}
+      # List of root certificates for HTTPS server verifications
       certificate_authorities:
         {%- for value in output.logstash.tls.certificate_authorities %}
         - {{ value }}
         {%- endfor %}
       {%- endif %}
 
-      # Certificate for TLS client authentication
       {%- if output.logstash.tls.certificate is defined %}
+      # Certificate for TLS client authentication
       certificate: "{{ output.logstash.tls.certificate }}"
       {%- endif %}
 
-      # Client Certificate Key
       {%- if output.logstash.tls.certificate_key is defined %}
+      # Client Certificate Key
       certificate_key: "{{ output.logstash.tls.certificate_key }}"
       {%- endif %}
 
+      {%- if output.logstash.tls.insecure is defined %}
       # Controls whether the client verifies server certificates and host name.
       # If insecure is set to true, all server host names and certificates will be
       # accepted. In this mode TLS based connections are susceptible to
       # man-in-the-middle attacks. Use only for testing.
-      {%- if output.logstash.tls.insecure is defined %}
       insecure: {{ output.logstash.tls.insecure }}
       {%- endif %}
 
-      # Configure cipher suites to be used for TLS connections
       {%- if output.logstash.tls.cipher_suites is defined %}
+      # Configure cipher suites to be used for TLS connections
       cipher_suites: [{{ "'%s'" %"','".join(output.logstash.tls.cipher_suites) }}]
       {%- endif %}
 
-      # Configure curve types for ECDHE based cipher suites
       {%- if output.logstash.tls.curve_types is defined %}
+      # Configure curve types for ECDHE based cipher suites
       curve_types: [{{ "'%s'" %"','".join(output.logstash.tls.curve_types) }}]
       {%- endif %}
     {%- endif %}

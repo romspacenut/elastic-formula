@@ -288,35 +288,49 @@ output:
   {%- if output.redis is defined %}
   redis:
     # Set the host and port where to find Redis.
-    host: "{{ output.file.host }}"
-    port: {{ output.file.port }}
+    host: "{{ output.redis.host }}"
+    port: {{ output.redis.port }}
 
+    {%- if output.redis.save_topology is defined %}
     # Uncomment out this option if you want to store the topology in Redis.
     # The default is false.
-    {% if output.file.save_topology is defined %}save_topology: {{ output.file.save_topology }}{% endif %}
+    save_topology: {{ output.redis.save_topology }}
+    {%- endif %}
 
+    {%- if output.redis.index is defined %}
     # Optional index name. The default is filebeat and generates filebeat keys.
-    {% if output.file.index is defined %}index: "{{ output.file.index }}"{% endif %}
+    index: "{{ output.redis.index }}"
+    {%- endif %}
 
+    {%- if output.redis.db is defined %}
     # Optional Redis database number where the events are stored
     # The default is 0.
-    {% if output.file.db is defined %}db: {{ output.file.db }}{% endif %}
+    db: {{ output.redis.db }}
+    {%- endif %}
 
+    {%- if output.redis.db_topology is defined %}
     # Optional Redis database number where the topology is stored
     # The default is 1. It must have a different value than db.
-    {% if output.file.db_topology is defined %}db_topology: {{ output.file.db_topology }}{% endif %}
+    db_topology: {{ output.redis.db_topology }}
+    {%- endif %}
 
+    {%- if output.redis.timeout is defined %}
     # Optional password to authenticate with. By default, no
     # password is set.
-    # password: ""
+    password: {{ output.redis.password }}
+    {%- endif %}
 
+    {%- if output.redis.timeout is defined %}
     # Optional Redis initial connection timeout in seconds.
     # The default is 5 seconds.
-    {% if output.file.timeout is defined %}timeout: {{ output.file.timeout }}{% endif %}
+    timeout: {{ output.redis.timeout }}
+    {%- endif %}
 
+    {%- if output.redis.reconnect_interval is defined %}
     # Optional interval for reconnecting to failed Redis connections.
     # The default is 1 second.
-    {% if output.file.reconnect_interval is defined %}reconnect_interval: {{ output.file.reconnect_interval }}{% endif %}
+    reconnect_interval: {{ output.redis.reconnect_interval }}
+    {%- endif %}
   {%- endif %}
   {% if output.console is defined %}
   ### Console output
