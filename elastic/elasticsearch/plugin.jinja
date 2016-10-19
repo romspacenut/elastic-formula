@@ -1,0 +1,9 @@
+# Install ES plugin
+{%- macro install_plugin(pkg, repo) %}
+/usr/share/elasticsearch/bin/plugin install {{ repo }}:
+  cmd.run:
+    - require:
+      - pkg: elasticsearch
+    - unless:
+      - ls /usr/share/elasticsearch/plugins/{{ pkg }}
+{%- endmacro %}

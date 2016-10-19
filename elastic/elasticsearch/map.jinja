@@ -1,0 +1,142 @@
+{% set os_map = salt['grains.filter_by']({
+    'Debian': {
+        'pkgrepo': 'deb https://packages.elastic.co/elasticsearch/2.x/debian stable main',
+        'key_url': 'https://packages.elastic.co/GPG-KEY-elasticsearch',
+        'file': '/etc/apt/sources.list.d/elasticsearch.list',
+        'pkg_name': 'elasticsearch',
+        'service_name': 'elasticsearch'
+    },
+    'RedHat': {
+        'pkgrepo': 'deb https://packages.elastic.co/beats/apt stable main',
+        'key_url': 'https://packages.elastic.co/GPG-KEY-elasticsearch',
+        'file': '/etc/apt/sources.list.d/beat.list',
+        'pkg_name': 'elasticsearch',
+        'service_name': 'elasticsearch'
+    },
+}, grain='os_family', merge=salt['pillar.get']('elastic:elasticsearch:lookup'), default='Debian') %}
+
+{% set full_settings = {
+    'elasticsearch': {
+        'cluster': {
+            'name': ''
+        },
+        'path': {
+            'data': '/var/lib/elasticsearch',
+            'logs': '/var/log/elasticsearch'
+        },
+        'node': {
+            'name': '',
+            'rack': '',
+            'max_local_storage_nodes': 1,
+            'master': 'true',
+            'data': 'true'
+        },
+        'bootstrap': {
+            'memory_lock': 'true'
+        },
+        'http': {
+            'port': 9200,
+            'enabled': 'true'
+        },
+        'network': {
+            'host': '127.0.0.1',
+            'publish_host': '',
+            'bind_host': '0.0.0.0'
+        },
+        'action': {
+            'destructive_requires_name': 'tr'
+        },
+        'gateway': {
+            'recover_after_nodes': 3
+        },
+        'discovery': {
+            'zen': {
+                'minimum_master_nodes': 3,
+                'ping': {
+                    'multicast': {
+                        'enabled': 'false'
+                    },
+                    'unicast': {
+                        'hosts': []
+                    }
+                }
+            }
+        },
+        'indices': {
+            'fielddata': {
+                'cache': {
+                    'size': '40%'
+                }
+            }
+        },
+        'index': {
+            'number_of_shards': 1,
+            'number_of_replicas': 1
+        },
+        'shield': {
+            'enabled': 'false'
+        },
+        'transport': {
+            'tcp': {
+                'port': '9300-9400'
+            }
+        },
+        'default': {
+            'ES_HOME': '/usr/share/elasticsearch',
+            'CONF_DIR': '/etc/elasticsearch',
+            'DATA_DIR': '/var/lib/elasticsearch',
+            'LOG_DIR': '/var/log/elasticsearch',
+            'PID_DIR': '/var/run/elasticsearch',
+            'ES_HEAP_SIZE': '1g',
+            'ES_HEAP_NEWSIZE': '',
+            'ES_DIRECT_SIZE': '',
+            'ES_JAVA_OPTS': '',
+            'RESTART_ON_UPGRADE': 'true',
+            'ES_GC_LOG_FILE': '/var/log/elasticsearch/gc.log',
+            'ES_USER': 'elasticsearch',
+            'ES_GROUP': 'elasticsearch',
+            'ES_STARTUP_SLEEP_TIME': 5,
+            'MAX_OPEN_FILES': '65536',
+            'MAX_LOCKED_MEMORY': 'unlimited',
+            'MAX_MAP_COUNT': '262144',
+        }
+    }
+}%}
+
+{% set default_settings = {
+    'elasticsearch': {
+        'path': {
+            'data': '/var/lib/elasticsearch',
+            'logs': '/var/log/elasticsearch'
+        },
+        'http': {
+            'port': 9200,
+            'enabled': 'true'
+        },
+        'network': {
+            'bind_host': '0.0.0.0'
+        },
+        'indices': {
+            'fielddata': {
+                'cache': {
+                    'size': '40%'
+                }
+            }
+        },
+        'shield': {
+            'enabled': 'false'
+        },
+        'default': {
+            'ES_STARTUP_SLEEP_TIME': 5,
+        }
+    }
+}%}
+
+{# Uncomment out to merge in the settings for testing #}
+{#% do default_settings.update(full_settings) %#}
+
+{# Merge os_map into default_settings dictionary #}
+{% do default_settings.elasticsearch.update(os_map) %}
+
+{# Update settings defaults from pillar data #}
+{% set elasticsearch_settings = salt['pillar.get']('elastic:elasticsearch', default=default_settings.elasticsearch, merge=True) %}

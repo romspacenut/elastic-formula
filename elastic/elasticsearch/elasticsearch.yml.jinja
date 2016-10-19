@@ -1,0 +1,76 @@
+{%- from "elastic/elasticsearch/map.jinja" import elasticsearch_settings with context %}
+path.data: {{ elasticsearch_settings.path.data }}
+path.logs: {{ elasticsearch_settings.path.logs }}
+{%- if elasticsearch_settings.http.port is defined %}
+http.port: {{ elasticsearch_settings.http.port }}
+{%- endif %}
+http.enabled: {{ elasticsearch_settings.http.enabled }}
+indices.fielddata.cache.size: {{ elasticsearch_settings.indices.fielddata.cache.size }}
+shield.enabled: {{ elasticsearch_settings.shield.enabled }}
+
+{%- if elasticsearch_settings.cluster is defined and elasticsearch_settings.cluster.name is defined %}
+cluster.name: {{ elasticsearch_settings.cluster.name }}
+{%- endif %}
+
+{%- if elasticsearch_settings.node %}
+{%- if elasticsearch_settings.node.name is defined %}
+node.name: {{ elasticsearch_settings.node.name }}
+{%- endif %}
+{%- if elasticsearch_settings.node.rack is defined %}
+node.rack: {{ elasticsearch_settings.node.rack }}
+{%- endif %}
+{%- if elasticsearch_settings.node.max_local_storage_nodes is defined %}
+node.max_local_storage_nodes: {{ elasticsearch_settings.node.max_local_storage_nodes }}
+{%- endif %}
+{%- if elasticsearch_settings.node.master is defined %}
+node.master: {{ elasticsearch_settings.node.master }}
+{%- endif %}
+{%- if elasticsearch_settings.node.data is defined %}
+node.data: {{ elasticsearch_settings.node.data }}
+{%- endif %}
+{%- endif %}
+
+{%- if elasticsearch_settings.bootstrap is defined and elasticsearch_settings.bootstrap.memory_lock is defined %}
+bootstrap.memory_lock: {{ elasticsearch_settings.bootstrap.memory_lock }}
+{%- endif %}
+
+{%- if elasticsearch_settings.network is defined %}
+{%- if elasticsearch_settings.network.host is defined %}
+network.host: {{ elasticsearch_settings.network.host }}
+{%- endif %}
+{%- if elasticsearch_settings.network.publish_host is defined %}
+network.publish_host: {{ elasticsearch_settings.network.publish_host }}
+{%- endif %}
+{%- if elasticsearch_settings.network.bind_host is defined %}
+network.bind_host: {{ elasticsearch_settings.network.bind_host }}
+{%- endif %}
+{%- endif %}
+
+{%- if elasticsearch_settings.discovery is defined %}
+{%- if elasticsearch_settings.discovery.zen.ping.multicast.enabled is defined %}
+discovery.zen.ping.multicast.enabled: {{ elasticsearch_settings.discovery.zen.ping.multicast.enabled }}
+{%- endif %}
+{%- if elasticsearch_settings.discovery.zen.ping.unicast.hosts is defined %}
+discovery.zen.ping.unicast.hosts: [{{ "'%s'" %"','".join(elasticsearch_settings.discovery.zen.ping.unicast.hosts) }}]
+{%- endif %}
+{%- if elasticsearch_settings.discovery.zen.minimum_master_nodes is defined %}
+discovery.zen.minimum_master_nodes: {{ elasticsearch_settings.discovery.zen.minimum_master_nodes }}
+{%- endif %}
+{%- endif %}
+
+{%- if elasticsearch_settings.gateway is defined and elasticsearch_settings.gateway.recover_after_nodes is defined %}
+gateway.recover_after_nodes: {{ elasticsearch_settings.gateway.recover_after_nodes }}
+{%- endif %}
+
+{%- if elasticsearch_settings.action is defined and elasticsearch_settings.action.destructive_requires_name %}
+action.destructive_requires_name: {{ action.destructive_requires_name }}
+{%- endif %}
+
+{%- if elasticsearch_settings.index is defined %}
+{%- if elasticsearch_settings.index.number_of_shards is defined %}
+index.number_of_shards: {{ elasticsearch_settings.index.number_of_shards }}
+{%- endif %}
+{%- if elasticsearch_settings.index.number_of_replicas is defined %}
+index.number_of_replicas: {{ elasticsearch_settings.index.number_of_replicas }}
+{%- endif %}
+{%- endif %}
