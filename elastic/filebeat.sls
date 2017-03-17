@@ -38,7 +38,8 @@ install-filebeat:
 
 /etc/filebeat/filebeat.yml:
   file.managed:
-    - source: salt://elastic/filebeat/filebeat.yml.jinja
+    #- source: salt://elastic/filebeat/filebeat.yml.jinja
+    - source: salt://elastic/filebeat/conf/filebeat-5-x.jinja
     - template: jinja
     - makedirs: True
     - defaults:

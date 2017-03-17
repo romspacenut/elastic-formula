@@ -1,0 +1,1199 @@
+{% from "elastic/filebeat/map.jinja" import filebeat_settings with context %}
+################### Filebeat Configuration Managed By Salt ####################
+
+# This file is a full configuration example documenting all non-deprecated
+# options in comments. For a shorter configuration example, that contains only
+# the most common options, please see filebeat.yml in the same directory.
+#
+# You can find the full configuration reference here:
+# https://www.elastic.co/guide/en/beats/filebeat/index.html
+
+#=========================== Filebeat prospectors =============================
+
+# List of prospectors to fetch data.
+filebeat.prospectors:
+# Each - is a prospector. Most options can be set at the prospector level, so
+# you can use different prospectors for various configurations.
+# Below are the prospector specific configurations.
+
+# Type of the files. Based on this the way the file is read is decided.
+# The different types cannot be mixed in one prospector
+#
+# Possible options are:
+# * log: Reads every line of the log file (default)
+# * stdin: Reads the standard in
+
+#------------------------------ Log prospector --------------------------------
+- input_type: {{ prospectors.input_type }}
+
+  # Paths that should be crawled and fetched. Glob based paths.
+  # To fetch all ".log" files from a specific level of subdirectories
+  # /var/log/*/*.log can be used.
+  # For each file found under this path, a harvester is started.
+  # Make sure not file is defined twice as this can lead to unexpected behaviour.
+  paths:
+    {%- for path in prospectors.paths %}
+    {{ '- {0}'.format(path) }}
+    {%- endfor %}
+    #- c:\programdata\elasticsearch\logs\*
+
+  {%- if prospectors.encoding is defined %}
+  # Configure the file encoding for reading files with international characters
+  # following the W3C recommendation for HTML5 (http://www.w3.org/TR/encoding).
+  # Some sample encodings:
+  #   plain, utf-8, utf-16be-bom, utf-16be, utf-16le, big5, gb18030, gbk,
+  #    hz-gb-2312, euc-kr, euc-jp, iso-2022-jp, shift-jis, ...
+  encoding: {{ prospectors.encoding }}
+  {%- endif %}
+
+  {%- if prospectors.exclude_lines is defined %}
+  # Exclude lines. A list of regular expressions to match. It drops the lines that are
+  # matching any regular expression from the list. The include_lines is called before
+  # exclude_lines. By default, no lines are dropped.
+  exclude_lines: [{{ "'%s'" %"','".join(prospectors.exclude_lines) }}]
+  {%- endif %}
+
+  {%- if prospectors.include_lines is defined %}
+  # Include lines. A list of regular expressions to match. It exports the lines that are
+  # matching any regular expression from the list. The include_lines is called before
+  # exclude_lines. By default, all the lines are exported.
+  include_lines: [{{ "'%s'" %"','".join(prospectors.include_lines) }}]
+  {%- endif %}
+
+  {%- if prospectors.exclude_files is defined %}
+  # Exclude files. A list of regular expressions to match. Filebeat drops the files that
+  # are matching any regular expression from the list. By default, no files are dropped.
+  exclude_files: [{{ "'%s'" %"','".join(prospectors.exclude_files) }}]
+  {%- endif %}
+
+  {%- if prospectors.fields is defined %}
+  # Optional additional fields. These field can be freely picked
+  # to add additional information to the crawled log files for filtering
+  fields:
+    {%- for key, value in prospectors.fields.items() %}
+    {{ key }}: {{ value }}
+    {%- endfor %}
+  {%- endif %}
+
+  {%- if prospectors.fields_under_root is defined %}
+  # Set to true to store the additional fields as top level fields instead
+  # of under the "fields" sub-dictionary. In case of name conflicts with the
+  # fields added by Filebeat itself, the custom fields overwrite the default
+  # fields.
+  fields_under_root: {{ prospectors.fields_under_root }}
+  {%- endif %}
+
+  {%- if prospectors.ignore_older is defined %}
+  # Ignore files which were modified more then the defined timespan in the past
+  # Time strings like 2h (2 hours), 5m (5 minutes) can be used.
+  ignore_older: {{ prospectors.ignore_older }}
+  {%- endif %}
+
+  {%- if prospectors.document_type is defined %}
+  # Type to be published in the 'type' field. For Elasticsearch output,
+  # the type defines the document type these entries should be stored
+  # in. Default: log
+  document_type: {{ prospectors.document_type }}
+  {%- endif %}
+
+  {%- if prospectors.scan_frequency is defined %}
+  # Scan frequency in seconds.
+  # How often these files should be checked for changes. In case it is set
+  # to 0s, it is done as often as possible. Default: 10s
+  scan_frequency: {{ prospectors.scan_frequency }}
+  {%- endif %}
+
+  {%- if prospectors.harvester_buffer_size is defined %}
+  # Defines the buffer size every harvester uses when fetching the file
+  harvester_buffer_size: {{ prospectors.harvester_buffer_size }}
+  {%- endif %}
+
+  {%- if prospectors.max_bytes is defined %}
+  # Maximum number of bytes a single log event can have
+  # All bytes after max_bytes are discarded and not sent. The default is 10MB.
+  # This is especially useful for multiline log messages which can get large.
+  max_bytes: {{ prospectors.max_bytes }}
+  {%- endif %}
+
+  {%- if prospectors.json is defined %}
+  ### JSON configuration
+
+  {%- if prospectors.json.message_key is defined %}
+  # Decode JSON options. Enable this if your logs are structured in JSON.
+  # JSON key on which to apply the line filtering and multiline settings. This key
+  # must be top level and its value must be string, otherwise it is ignored. If
+  # no text key is defined, the line filtering and multiline features cannot be used.
+  json.message_key: {{ prospectors.json.message_key }}
+  {%- endif %}
+
+  {%- if prospectors.json.keys_under_root is defined %}
+  # By default, the decoded JSON is placed under a "json" key in the output document.
+  # If you enable this setting, the keys are copied top level in the output document.
+  json.keys_under_root: {{ prospectors.json.keys_under_root }}
+  {%- endif %}
+
+  {%- if prospectors.json.overwrite_keys is defined %}
+  # If keys_under_root and this setting are enabled, then the values from the decoded
+  # JSON object overwrite the fields that Filebeat normally adds (type, source, offset, etc.)
+  # in case of conflicts.
+  json.overwrite_keys: {{ prospectors.json.overwrite_keys }}
+  {%- endif %}
+
+  {%- if prospectors.json.add_error_key is defined %}
+  # If this setting is enabled, Filebeat adds a "json_error" key in case of JSON
+  # unmarshaling errors or when a text key is defined in the configuration but cannot
+  # be used.
+  json.add_error_key: {{ prospectors.json.add_error_key }}
+  {%- endif %}
+  {%- endif %}
+
+  {%- if prospectors.multiline is defined %}
+  ### Multiline options
+
+  # Mutiline can be used for log messages spanning multiple lines. This is common
+  # for Java Stack Traces or C-Line Continuation
+
+  {%- if prospectors.multiline.pattern is defined %}
+  # The regexp Pattern that has to be matched. The example pattern matches all lines starting with [
+  multiline.pattern: {{ prospectors.multiline.pattern }}
+  {%- endif %}
+
+  {%- if prospectors.multiline.negate is defined %}
+  # Defines if the pattern set under pattern should be negated or not. Default is false.
+  multiline.negate: {{ prospectors.multiline.negate }}
+  {%- endif %}
+
+  {%- if prospectors.multiline.match is defined %}
+  # Match can be set to "after" or "before". It is used to define if lines should be append to a pattern
+  # that was (not) matched before or after or as long as a pattern is not matched based on negate.
+  # Note: After is the equivalent to previous and before is the equivalent to to next in Logstash
+  multiline.match: {{ prospectors.multiline.match }}
+  {%- endif %}
+
+  {%- if prospectors.multiline.max_lines is defined %}
+  # The maximum number of lines that are combined to one event.
+  # In case there are more the max_lines the additional lines are discarded.
+  # Default is 500
+  multiline.max_lines: {{ prospectors.multiline.max_lines }}
+  {%- endif %}
+
+  {%- if prospectors.multiline.timeout is defined %}
+  # After the defined timeout, an multiline event is sent even if no new pattern was found to start a new event
+  # Default is 5s.
+  multiline.timeout: {{ prospectors.multiline.timeout }}
+  {%- endif %}
+  {%- endif %}
+
+  {%- if prospectors.tail_files is defined %}
+  # Setting tail_files to true means filebeat starts readding new files at the end
+  # instead of the beginning. If this is used in combination with log rotation
+  # this can mean that the first entries of a new file are skipped.
+  tail_files: {{ prospectors.tail_files }}
+  {%- endif %}
+
+  {%- if prospectors.symlinks is defined %}
+  # Experimental: If symlinks is enabled, symlinks are opened and harvested. The harvester is openening the
+  # original for harvesting but will report the symlink name as source.
+  symlinks: {{ prospectors.symlinks }}
+  {%- endif %}
+
+  {%- if prospectors.backoff is defined %}
+  # Backoff values define how agressively filebeat crawls new files for updates
+  # The default values can be used in most cases. Backoff defines how long it is waited
+  # to check a file again after EOF is reached. Default is 1s which means the file
+  # is checked every second if new lines were added. This leads to a near real time crawling.
+  # Every time a new line appears, backoff is reset to the initial value.
+  backoff: {{ prospectors.backoff }}
+  {%- endif %}
+
+  {%- if prospectors.encoding is defined %}
+  # Max backoff defines what the maximum backoff time is. After having backed off multiple times
+  # from checking the files, the waiting time will never exceed max_backoff idenependent of the
+  # backoff factor. Having it set to 10s means in the worst case a new line can be added to a log
+  # file after having backed off multiple times, it takes a maximum of 10s to read the new line
+  max_backoff: {{ prospectors.max_backoff }}
+  {%- endif %}
+
+  {%- if prospectors.backoff_factor is defined %}
+  # The backoff factor defines how fast the algorithm backs off. The bigger the backoff factor,
+  # the faster the max_backoff value is reached. If this value is set to 1, no backoff will happen.
+  # The backoff value will be multiplied each time with the backoff_factor until max_backoff is reached
+  backoff_factor: {{ prospectors.backoff_factor }}
+  {%- endif %}
+
+  {%- if prospectors.harvester_limit is defined %}
+  # Experimental: Max number of harvesters that are started in parallel.
+  # Default is 0 which means unlimited
+  harvester_limit: {{ prospectors.harvester_limit }}
+  {%- endif %}
+
+  ### Harvester closing options
+
+  {%- if prospectors.force_close_files is defined %}
+  # Close inactive closes the file handler after the predefined period.
+  # The period starts when the last line of the file was, not the file ModTime.
+  # Time strings like 2h (2 hours), 5m (5 minutes) can be used.
+  close_inactive: {{ prospectors.close_inactive }}
+  {%- endif %}
+
+  {%- if prospectors.force_close_files is defined %}
+  # Close renamed closes a file handler when the file is renamed or rotated.
+  # Note: Potential data loss. Make sure to read and understand the docs for this option.
+  close_renamed: {{ prospectors.close_renamed }}
+  {%- endif %}
+
+  {%- if prospectors.force_close_files is defined %}
+  # When enabling this option, a file handler is closed immediately in case a file can't be found
+  # any more. In case the file shows up again later, harvesting will continue at the last known position
+  # after scan_frequency.
+  close_removed: {{ prospectors.close_removed }}
+  {%- endif %}
+
+  {%- if prospectors.force_close_files is defined %}
+  # Closes the file handler as soon as the harvesters reaches the end of the file.
+  # By default this option is disabled.
+  # Note: Potential data loss. Make sure to read and understand the docs for this option.
+  close_eof: {{ prospectors.close_eof }}
+  {%- endif %}
+
+  ### State options
+
+  {%- if prospectors.force_close_files is defined %}
+  # Files for the modification data is older then clean_inactive the state from the registry is removed
+  # By default this is disabled.
+  clean_inactive: {{ prospectors.clean_inactive }}
+  {%- endif %}
+
+  {%- if prospectors.force_close_files is defined %}
+  # Removes the state for file which cannot be found on disk anymore immediately
+  clean_removed: {{ prospectors.clean_removed }}
+  {%- endif %}
+
+  {%- if prospectors.force_close_files is defined %}
+  # Close timeout closes the harvester after the predefined time.
+  # This is independent if the harvester did finish reading the file or not.
+  # By default this option is disabled.
+  # Note: Potential data loss. Make sure to read and understand the docs for this option.
+  close_timeout: {{ prospectors.close_timeout }}
+  {%- endif %}
+
+  {%- if prospectors.force_close_files is defined %}
+  # Defines if prospectors is enabled
+  enabled: {{ prospectors.enabled }}
+  {%- endif %}
+
+#----------------------------- Stdin prospector -------------------------------
+# Configuration to use stdin input
+#- input_type: stdin
+
+#========================= Filebeat global options ============================
+
+{%- if filebeat_settings.spool_size is defined %}
+# Event count spool threshold - forces network flush if exceeded
+filebeat.spool_size: {{ filebeat_settings.spool_size }}
+{%- endif %}
+
+{%- if filebeat_settings.publish_async is defined %}
+# Enable async publisher pipeline in filebeat (Experimental!)
+filebeat.publish_async: {{ filebeat_settings.publish_async }}
+{%- endif %}
+
+{%- if filebeat_settings.idle_timeout is defined %}
+# Defines how often the spooler is flushed. After idle_timeout the spooler is
+# Flush even though spool_size is not reached.
+filebeat.idle_timeout: {{ filebeat_settings.idle_timeout }}
+{%- endif %}
+
+{%- if filebeat_settings.registry_file is defined %}
+# Name of the registry file. If a relative path is used, it is considered relative to the
+# data path.
+filebeat.registry_file: {{ filebeat_settings.registry_file }}
+{%- endif %}
+
+{%- if filebeat_settings.config_dir is defined %}
+#
+# These config files must have the full filebeat config part inside, but only
+# the prospector part is processed. All global options like spool_size are ignored.
+# The config_dir MUST point to a different directory then where the main filebeat config file is in.
+filebeat.config_dir: {{ filebeat_settings.config_dir }}
+{%- endif %}
+
+{%- if filebeat_settings.shutdown_timeout is defined %}
+# How long filebeat waits on shutdown for the publisher to finish.
+# Default is 0, not waiting.
+filebeat.shutdown_timeout: {{ filebeat_settings.shutdown_timeout }}
+{%- endif %}
+#================================ General ======================================
+
+{%- if filebeat_settings.shipper is defined and filebeat_settings.shipper.name is defined %}
+# The name of the shipper that publishes the network data. It can be used to group
+# all the transactions sent by a single shipper in the web interface.
+# If this options is not defined, the hostname is used.
+name: {{ filebeat_settings.shipper.name }}
+{%- endif %}
+
+{%- if filebeat_settings.shipper is defined and filebeat_settings.shipper.tags is defined %}
+# The tags of the shipper are included in their own field with each
+# transaction published. Tags make it easy to group servers by different
+# logical properties.
+tags: [{{ "'%s'" %"','".join(filebeat_settings.shipper.tags) }}]
+{%- endif %}
+
+{%- if filebeat_settings.prospectors.fields is defined %}
+# Optional additional fields. These field can be freely picked
+# to add additional information to the crawled log files for filtering
+fields:
+  {%- for key, value in filebeat_settings.prospectors.fields.items() %}
+  {{ key }}: {{ value }}
+  {%- endfor %}
+{%- endif %}
+
+{%- if filebeat_settings.prospectors.fields_under_root is defined %}
+# Set to true to store the additional fields as top level fields instead
+# of under the "fields" sub-dictionary. In case of name conflicts with the
+# fields added by Filebeat itself, the custom fields overwrite the default
+# fields.
+fields_under_root: {{ filebeat_settings.prospectors.fields_under_root }}
+{%- endif %}
+
+{%- if filebeat_settings.shipper is defined and filebeat_settings.shipper.queue_size is defined %}
+# Internal queue size for single events in processing pipeline
+queue_size: {{ filebeat_settings.shipper.queue_size }}
+{%- endif %}
+
+{%- if filebeat_settings.shipper is defined and filebeat_settings.shipper.bulk_queue_size is defined %}
+# The internal queue size for bulk events in the processing pipeline.
+# Do not modify this value.
+bulk_queue_size: {{ filebeat_settings.shipper.bulk_queue_size }}
+{%- endif %}
+
+{%- if filebeat_settings.shipper is defined and filebeat_settings.shipper.max_procs is defined %}
+# Sets the maximum number of CPUs that can be executing simultaneously. The
+# default is the number of logical CPUs available in the system.
+max_procs: {{ filebeat_settings.shipper.max_procs }}
+{%- endif %}
+#================================ Processors ===================================
+
+# Processors are used to reduce the number of fields in the exported event or to
+# enhance the event with external metadata. This section defines a list of
+# processors that are applied one by one and the first one receives the initial
+# event:
+#
+#   event -> filter1 -> event1 -> filter2 ->event2 ...
+#
+# The supported processors are drop_fields, drop_event, include_fields, and
+# add_cloud_metadata.
+#
+# For example, you can use the following processors to keep the fields that
+# contain CPU load percentages, but remove the fields that contain CPU ticks
+# values:
+#
+#processors:
+#- include_fields:
+#    fields: ["cpu"]
+#- drop_fields:
+#    fields: ["cpu.user", "cpu.system"]
+#
+# The following example drops the events that have the HTTP response code 200:
+#
+#processors:
+#- drop_event:
+#    when:
+#       equals:
+#           http.code: 200
+#
+# The following example enriches each event with metadata from the cloud
+# provider about the host machine. It works on EC2, GCE, and DigitalOcean.
+#
+#processors:
+#- add_cloud_metadata:
+#
+
+#================================ Outputs ======================================
+
+# Configure what outputs to use when sending the data collected by the beat.
+# Multiple outputs may be used.
+
+{%- if filebeat_settings.output.elasticsearch is defined and filebeat_settings.output.logstash is not defined and filebeat_settings.output.redis is not defined %}
+#-------------------------- Elasticsearch output -------------------------------
+output.elasticsearch:
+  # Boolean flag to enable or disable the output module.
+  #enabled: true
+
+  # Array of hosts to connect to.
+  # Scheme and port can be left out and will be set to the default (http and 9200)
+  # In case you specify and additional path, the scheme is required: http://localhost:9200/path
+  # IPv6 addresses should always be defined as: https://[2001:db8::1]:9200
+  hosts: [{{ "'%s'" %"','".join(filebeat_settings.output.elasticsearch.hosts) }}]
+
+  # Set gzip compression level.
+  {%- if filebeat_settings.output.elasticsearch.compression_level is defined %}
+  compression_level: "{{ filebeat_settings.output.elasticsearch.compression_level }}"
+  {%- endif %}
+
+  # Optional protocol and basic auth credentials.
+  {%- if filebeat_settings.output.elasticsearch.protocol is defined %}
+  protocol: "{{ filebeat_settings.output.elasticsearch.protocol }}"
+  {%- endif %}
+  {%- if filebeat_settings.output.elasticsearch.username is defined %}
+  username: "{{ filebeat_settings.output.elasticsearch.username }}"
+  {%- endif %}
+  {%- if filebeat_settings.output.elasticsearch.password is defined %}
+  password: "{{ filebeat_settings.output.elasticsearch.password }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.parameters is defined %}
+  # Dictionary of HTTP parameters to pass within the url with index operations.
+  parameters:
+    {%- for key, value in filebeat_settings.output.elasticsearch.parameters.items() %}
+    {{ key }}: {{ value }}
+    {%- endfor %}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.worker is defined %}
+  # Number of workers per Elasticsearch host.
+  worker: {{ filebeat_settings.output.elasticsearch.worker }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.index is defined %}
+  # Optional index name. The default is "filebeat" and generates
+  # [filebeat-]YYYY.MM.DD keys.
+  index: "{{ filebeat_settings.output.elasticsearch.index }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.path is defined %}
+  # Optional ingest node pipeline. By default no pipeline will be used.
+  pipeline: "{{ filebeat_settings.output.elasticsearch.pipeline }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.path is defined %}
+  # Optional HTTP Path
+  path: "{{ filebeat_settings.output.elasticsearch.path }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.proxy_url is defined %}
+  # Proxy server url
+  proxy_url: "{{ filebeat_settings.output.elasticsearch.proxy_url }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.max_retries is defined %}
+  # The number of times a particular Elasticsearch index operation is attempted. If
+  # the indexing operation doesn't succeed after this many retries, the events are
+  # dropped. The default is 3.
+  max_retries: {{ filebeat_settings.output.elasticsearch.max_retries }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.bulk_max_size is defined %}
+  # The maximum number of events to bulk in a single Elasticsearch bulk API index request.
+  # The default is 50.
+  bulk_max_size: {{ filebeat_settings.output.elasticsearch.bulk_max_size }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.timeout is defined %}
+  # Configure http request timeout before failing an request to Elasticsearch.
+  timeout: {{ filebeat_settings.output.elasticsearch.timeout }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.flush_interval is defined %}
+  # The number of seconds to wait for new events between two bulk API index requests.
+  # If `bulk_max_size` is reached before this interval expires, addition bulk index
+  # requests are made.
+  flush_interval: {{ filebeat_settings.output.elasticsearch.flush_interval }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.template is defined %}
+  # A template is used to set the mapping in Elasticsearch
+  # By default template loading is enabled and the template is loaded.
+  # These settings can be adjusted to load your own template or overwrite existing ones.
+
+  {%- if filebeat_settings.output.elasticsearch.template.enabled is defined %}
+  # Set to false to disable template loading.
+  template.enabled: {{ filebeat_settings.output.elasticsearch.template.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.template.name is defined %}
+  # Template name. By default the template name is filebeat.
+  template.name: "{{ filebeat_settings.output.elasticsearch.template.name }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.template.path is defined %}
+  # Path to template file
+  template.path: "{{ filebeat_settings.output.elasticsearch.template.path }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.template.overwrite is defined %}
+  # Overwrite existing template
+  template.overwrite: {{ filebeat_settings.output.elasticsearch.template.overwrite }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.template.versions.2.enabled is defined %}
+  # If set to true, filebeat checks the Elasticsearch version at connect time, and if it
+  # is 2.x, it loads the file specified by the template.versions.2x.path setting. The
+  # default is true.
+  template.versions.2x.enabled: {{ filebeat_settings.output.elasticsearch.template.versions.2.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.template.versions.2.path is defined %}
+  # Path to the Elasticsearch 2.x version of the template file.
+  template.versions.2x.path: "{{ filebeat_settings.output.elasticsearch.template.versions.2.path }}"
+  {%- endif %}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.ssl is defined %}
+  {%- if filebeat_settings.output.elasticsearch.ssl.enabled is defined %}
+  # Use SSL settings for HTTPS. Default is true.
+  ssl.enabled: {{ filebeat_settings.output.elasticsearch.ssl.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.ssl.verification_mode is defined %}
+  # Configure SSL verification mode. If `none` is configured, all server hosts
+  # and certificates will be accepted. In this mode, SSL based connections are
+  # susceptible to man-in-the-middle attacks. Use only for testing. Default is
+  # `full`.
+  ssl.verification_mode: {{ filebeat_settings.output.elasticsearch.ssl.verification_mode }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.ssl.supported_protocols is defined %}
+  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
+  # 1.2 are enabled.
+  ssl.supported_protocols: [{{ "'%s'" %"','".join(filebeat_settings.output.elasticsearch.ssl.supported_protocols) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.ssl.certificate_authorities is defined %}
+  # SSL configuration. By default is off.
+  # List of root certificates for HTTPS server verifications
+  ssl.certificate_authorities: [{{ "'%s'" %"','".join(filebeat_settings.output.elasticsearch.ssl.certificate_authorities) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.ssl.certificate is defined %}
+  # Certificate for SSL client authentication
+  ssl.certificate: "{{ filebeat_settings.output.elasticsearch.ssl.certificate }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.ssl.key is defined %}
+  # Client Certificate Key
+  ssl.key: "{{ filebeat_settings.output.elasticsearch.ssl.key }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.ssl.key_passphrase is defined %}
+  # Optional passphrase for decrypting the Certificate Key.
+  ssl.key_passphrase: '{{ filebeat_settings.output.elasticsearch.ssl.key_passphrase }}'
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.ssl.cipher_suites is defined %}
+  # Configure cipher suites to be used for SSL connections
+  ssl.cipher_suites: [{{ "'%s'" %"','".join(filebeat_settings.output.elasticsearch.ssl.cipher_suites) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.elasticsearch.ssl.ssl is defined %}
+  # Configure curve types for ECDHE based cipher suites
+  ssl.curve_types: [{{ "'%s'" %"','".join(filebeat_settings.output.elasticsearch.ssl.curve_types) }}]
+  {%- endif %}
+  {%- endif %}
+{%- endif %}
+
+{%- if filebeat_settings.output.logstash is defined %}
+#----------------------------- Logstash output ---------------------------------
+output.logstash:
+  {%- if filebeat_settings.output.logstash.enabled is defined %}
+  # Boolean flag to enable or disable the output module.
+  enabled: {{ filebeat_settings.output.logstash.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.hosts is defined %}
+  # The Logstash hosts
+  hosts: [{{ "'%s'" %"','".join(filebeat_settings.output.logstash.hosts) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.worker is defined %}
+  # Number of workers per Logstash host.
+  worker: {{ filebeat_settings.output.logstash.worker }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.compression_level is defined %}
+  # Set gzip compression level.
+  compression_level: {{ filebeat_settings.output.compression_level.worker }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.loadbalance is defined %}
+  # Optional load balance the events between the Logstash hosts
+  loadbalance: { filebeat_settings.output.compression_level.loadbalance }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.pipelining is defined %}
+  # Number of batches to be send asynchronously to logstash while processing
+  # new batches.
+  pipelining: { filebeat_settings.output.compression_level.pipelining }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.index is defined %}
+  # Optional index name. The default index name depends on the each beat.
+  # For Packetbeat, the default is set to packetbeat, for Topbeat
+  # top topbeat and for Filebeat to filebeat.
+  index: {{ filebeat_settings.output.logstash.index }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.proxy_url is defined %}
+  # SOCKS5 proxy server URL
+  proxy_url: {{ filebeat_settings.output.logstash.proxy_url }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.proxy_use_local_resolver is defined %}
+  # Resolve names locally when using a proxy server. Defaults to false.
+  proxy_use_local_resolver: {{ filebeat_settings.output.logstash.proxy_use_local_resolver }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.ssl.enabled is defined %}
+  # Enable SSL support. SSL is automatically enabled, if any SSL setting is set.
+  ssl.enabled: {{ filebeat_settings.output.logstash.ssl.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.ssl.verification_mode is defined %}
+  # Configure SSL verification mode. If `none` is configured, all server hosts
+  # and certificates will be accepted. In this mode, SSL based connections are
+  # susceptible to man-in-the-middle attacks. Use only for testing. Default is
+  # `full`.
+  ssl.verification_mode: {{ filebeat_settings.output.logstash.ssl.verification_mode }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.ssl.supported_protocols is defined %}
+  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
+  # 1.2 are enabled.
+  ssl.supported_protocols: [{{ "'%s'" %"','".join(filebeat_settings.output.logstash.ssl.supported_protocols) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.ssl.certificate_authorities is defined %}
+  # Optional SSL configuration options. SSL is off by default.
+  # List of root certificates for HTTPS server verifications
+  ssl.certificate_authorities: [{{ "'%s'" %"','".join(filebeat_settings.output.logstash.ssl.certificate_authorities) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.ssl.certificate is defined %}
+  # Certificate for SSL client authentication
+  ssl.certificate: "{{ filebeat_settings.output.logstash.ssl.certificate }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.ssl.key is defined %}
+  # Client Certificate Key
+  ssl.key: "{{ filebeat_settings.output.logstash.ssl.key }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.ssl.key_passphrase is defined %}
+  # Optional passphrase for decrypting the Certificate Key.
+  ssl.key_passphrase: '{{ filebeat_settings.output.logstash.ssl.key_passphrase }}'
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.ssl.cipher_suites is defined %}
+  # Configure cipher suites to be used for SSL connections
+  ssl.cipher_suites: [{{ "'%s'" %"','".join(filebeat_settings.output.logstash.tls.cipher_suites) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.logstash.ssl.curve_types is defined %}
+  # Configure curve types for ECDHE based cipher suites
+  ssl.curve_types: [{{ "'%s'" %"','".join(filebeat_settings.output.logstash.tls.curve_types) }}]
+  {%- endif %}
+{%- endif %}
+
+{%- if filebeat_settings.output.kafka is defined %}
+#------------------------------- Kafka output ----------------------------------
+output.kafka:
+  {%- if filebeat_settings.output.kafka.enabled is defined %}
+  # Boolean flag to enable or disable the output module.
+  enabled: {{ filebeat_settings.output.kafka.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.hosts is defined %}
+  # The list of Kafka broker addresses from where to fetch the cluster metadata.
+  # The cluster metadata contain the actual Kafka brokers events are published
+  # to.
+  hosts: [{{ "'%s'" %"','".join(filebeat_settings.output.kafka.hosts) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.topic is defined %}
+  # The Kafka topic used for produced events. The setting can be a format string
+  # using any event field. To set the topic from document type use `%{[type]}`.
+  topic: {{ filebeat_settings.output.kafka.topic }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.key is defined %}
+  # The Kafka event key setting. Use format string to create unique event key.
+  # By default no event key will be generated.
+  key: {{ filebeat_settings.output.kafka.key }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.partition is defined and filebeat_settings.output.kafka.partition.hash is defined %}
+  # The Kafka event partitioning strategy. Default hashing strategy is `hash`
+  # using the `output.kafka.key` setting or randomly distributes events if
+  # `output.kafka.key` is not configured.
+  partition.hash:
+    {%- if filebeat_settings.output.kafka.partition.reachable_only is defined %}
+    # If enabled, events will only be published to partitions with reachable
+    # leaders. Default is false.
+    reachable_only: {{ filebeat_settings.output.kafka.partition.reachable_only }}
+    {%- endif %}
+
+    {%- if filebeat_settings.output.kafka.partition.hash is defined %}
+    # Configure alternative event field names used to compute the hash value.
+    # If empty `output.kafka.key` setting will be used.
+    # Default value is empty list.
+    hash: [{{ "'%s'" %"','".join(filebeat_settings.output.kafka.partition.hash) }}]
+    {%- endif %}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.username is defined %}
+  # Authentication details. Password is required if username is set.
+  username: '{{ filebeat_settings.output.kafka.username }}'
+  {%- endif %}
+  {%- if filebeat_settings.output.kafka.password is defined %}
+  password: '{{ filebeat_settings.output.kafka.password }}'
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.username is defined %}
+  # Kafka version filebeat is assumed to run against. Defaults to the oldest
+  # supported stable version (currently version 0.8.2.0)
+  version: {{ filebeat_settings.output.kafka.version }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.metadata is defined %}
+  # Metadata update configuration. Metadata do contain leader information
+  # deciding which broker to use when publishing.
+  metadata:
+    # Max metadata request retry attempts when cluster is in middle of leader
+    # election. Defaults to 3 retries.
+    retry.max: {{ filebeat_settings.output.kafka.metadata.retry.max }}
+
+    # Waiting time between retries during leader elections. Default is 250ms.
+    retry.backoff: {{ filebeat_settings.output.kafka.metadata.retry.backoff }}
+
+    # Refresh metadata interval. Defaults to every 10 minutes.
+    refresh_frequency: {{ filebeat_settings.output.kafka.metadata.refresh_frequency }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.worker is defined %}
+  # The number of concurrent load-balanced Kafka output workers.
+  worker: {{ filebeat_settings.output.kafka.worker }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.max_retries is defined %}
+  # The number of times to retry publishing an event after a publishing failure.
+  # After the specified number of retries, the events are typically dropped.
+  # Some Beats, such as Filebeat, ignore the max_retries setting and retry until
+  # all events are published.  Set max_retries to a value less than 0 to retry
+  # until all events are published. The default is 3.
+  max_retries: {{ filebeat_settings.output.kafka.max_retries }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.bulk_max_size is defined %}
+  # The maximum number of events to bulk in a single Kafka request. The default
+  # is 2048.
+  bulk_max_size: {{ filebeat_settings.output.kafka.bulk_max_size }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.timeout is defined %}
+  # The number of seconds to wait for responses from the Kafka brokers before
+  # timing out. The default is 30s.
+  timeout: {{ filebeat_settings.output.kafka.timeout }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.broker_timeout is defined %}
+  # The maximum duration a broker will wait for number of required ACKs. The
+  # default is 10s.
+  broker_timeout: {{ filebeat_settings.output.kafka.broker_timeout }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.channel_buffer_size is defined %}
+  # The number of messages buffered for each Kafka broker. The default is 256.
+  channel_buffer_size: {{ filebeat_settings.output.kafka.channel_buffer_size }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.keep_alive is defined %}
+  # The keep-alive period for an active network connection. If 0s, keep-alives
+  # are disabled. The default is 0 seconds.
+  keep_alive: {{ filebeat_settings.output.kafka.keep_alive }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.compression is defined %}
+  # Sets the output compression codec. Must be one of none, snappy and gzip. The
+  # default is gzip.
+  compression: {{ filebeat_settings.output.kafka.compression }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.max_message_bytes is defined %}
+  # The maximum permitted size of JSON-encoded messages. Bigger messages will be
+  # dropped. The default value is 1000000 (bytes). This value should be equal to
+  # or less than the broker's message.max.bytes.
+  max_message_bytes: {{ filebeat_settings.output.kafka.max_message_bytes }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.required_acks is defined %}
+  # The ACK reliability level required from broker. 0=no response, 1=wait for
+  # local commit, -1=wait for all replicas to commit. The default is 1.  Note:
+  # If set to 0, no ACKs are returned by Kafka. Messages might be lost silently
+  # on error.
+  required_acks: {{ filebeat_settings.output.kafka.required_acks }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.flush_interval is defined %}
+  # The number of seconds to wait for new events between two producer API calls.
+  flush_interval: {{ filebeat_settings.output.kafka.flush_interval }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.client_id is defined %}
+  # The configurable ClientID used for logging, debugging, and auditing
+  # purposes.  The default is "beats".
+  client_id: {{ filebeat_settings.output.kafka.client_id }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.ssl is defined %}
+  {%- if filebeat_settings.output.kafka.ssl.enabled is defined %}
+  # Enable SSL support. SSL is automatically enabled, if any SSL setting is set.
+  ssl.enabled: {{ filebeat_settings.output.kafka.ssl.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.ssl.certificate_authorities is defined %}
+  # Optional SSL configuration options. SSL is off by default.
+  # List of root certificates for HTTPS server verifications
+  ssl.certificate_authorities: [{{ "'%s'" %"','".join(filebeat_settings.output.kafka.ssl.certificate_authorities) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.ssl.verification_mode is defined %}
+  # Configure SSL verification mode. If `none` is configured, all server hosts
+  # and certificates will be accepted. In this mode, SSL based connections are
+  # susceptible to man-in-the-middle attacks. Use only for testing. Default is
+  # `full`.
+  ssl.verification_mode: {{ filebeat_settings.output.kafka.ssl.verification_mode }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.ssl.supported_protocols is defined %}
+  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
+  # 1.2 are enabled.
+  ssl.supported_protocols: [{{ "'%s'" %"','".join(filebeat_settings.output.kafka.ssl.supported_protocols) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.ssl.certificate is defined %}
+  # Certificate for SSL client authentication
+  ssl.certificate: "{{ filebeat_settings.output.kafka.ssl.certificate }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.ssl.key is defined %}
+  # Client Certificate Key
+  ssl.key: "{{ filebeat_settings.output.kafka.ssl.key }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.ssl.key_passphrase is defined %}
+  # Optional passphrase for decrypting the Certificate Key.
+  ssl.key_passphrase: '{{ filebeat_settings.output.kafka.ssl.key_passphrase }}'
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.ssl.cipher_suites is defined %}
+  # Configure cipher suites to be used for SSL connections
+  ssl.cipher_suites: [{{ "'%s'" %"','".join(filebeat_settings.output.kafka.ssl.cipher_suites) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.kafka.ssl.curve_types is defined %}
+  # Configure curve types for ECDHE based cipher suites
+  ssl.curve_types: [{{ "'%s'" %"','".join(filebeat_settings.output.kafka.ssl.curve_types) }}]
+  {%- endif %}
+  {%- endif %}
+{%- endif %}
+
+{%- if filebeat_settings.output.redis is defined %}
+#------------------------------- Redis output ----------------------------------
+output.redis:
+  {%- if filebeat_settings.output.redis.enabled is defined %}
+  # Boolean flag to enable or disable the output module.
+  enabled: {{ filebeat_settings.output.redis.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.hosts is defined %}
+  # The list of Redis servers to connect to. If load balancing is enabled, the
+  # events are distributed to the servers in the list. If one server becomes
+  # unreachable, the events are distributed to the reachable servers only.
+  hosts: [{{ "'%s'" %"','".join(filebeat_settings.output.redis.hosts) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.port is defined %}
+  # The Redis port to use if hosts does not contain a port number. The default
+  # is 6379.
+  port: {{ filebeat_settings.output.redis.port }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.key is defined %}
+  # The name of the Redis list or channel the events are published to. The
+  # default is filebeat.
+  key: {{ filebeat_settings.output.redis.key }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.password is defined %}
+  # The password to authenticate with. The default is no authentication.
+  password: '{{ filebeat_settings.output.redis.password }}'
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.db is defined %}
+  # The Redis database number where the events are published. The default is 0.
+  db: {{ filebeat_settings.output.redis.db }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.db is defined %}
+  # The Redis data type to use for publishing events. If the data type is list,
+  # the Redis RPUSH command is used. If the data type is channel, the Redis
+  # PUBLISH command is used. The default value is list.
+  datatype: {{ filebeat_settings.output.redis.db }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.db is defined %}
+  # The number of workers to use for each host configured to publish events to
+  # Redis. Use this setting along with the loadbalance option. For example, if
+  # you have 2 hosts and 3 workers, in total 6 workers are started (3 for each
+  # host).
+  worker: {{ filebeat_settings.output.redis.db }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.loadbalance is defined %}
+  # If set to true and multiple hosts or workers are configured, the output
+  # plugin load balances published events onto all Redis hosts. If set to false,
+  # the output plugin sends all events to only one host (determined at random)
+  # and will switch to another host if the currently selected one becomes
+  # unreachable. The default value is true.
+  loadbalance: {{ filebeat_settings.output.redis.loadbalance }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.timeout is defined %}
+  # The Redis connection timeout in seconds. The default is 5 seconds.
+  timeout: {{ filebeat_settings.output.redis.timeout }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.max_retries is defined %}
+  # The number of times to retry publishing an event after a publishing failure.
+  # After the specified number of retries, the events are typically dropped.
+  # Some Beats, such as Filebeat, ignore the max_retries setting and retry until
+  # all events are published. Set max_retries to a value less than 0 to retry
+  # until all events are published. The default is 3.
+  max_retries: {{ filebeat_settings.output.redis.max_retries }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.bulk_max_size is defined %}
+  # The maximum number of events to bulk in a single Redis request or pipeline.
+  # The default is 2048.
+  bulk_max_size: {{ filebeat_settings.output.redis.bulk_max_size }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.proxy_url is defined %}
+  # The URL of the SOCKS5 proxy to use when connecting to the Redis servers. The
+  # value must be a URL with a scheme of socks5://.
+  proxy_url: '{{ filebeat_settings.output.redis.proxy_url }}'
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.proxy_use_local_resolver is defined %}
+  # This option determines whether Redis hostnames are resolved locally when
+  # using a proxy. The default value is false, which means that name resolution
+  # occurs on the proxy server.
+  proxy_use_local_resolver: {{ filebeat_settings.output.redis.proxy_use_local_resolver }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.ssl is defined %}
+  {%- if filebeat_settings.output.redis.ssl.enabled is defined %}
+  # Enable SSL support. SSL is automatically enabled, if any SSL setting is set.
+  ssl.enabled: {{ filebeat_settings.output.redis.ssl.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.ssl.certificate_authorities is defined %}
+  # Optional SSL configuration options. SSL is off by default.
+  # List of root certificates for HTTPS server verifications
+  ssl.certificate_authorities: [{{ "'%s'" %"','".join(filebeat_settings.output.redis.ssl.certificate_authorities) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.ssl.verification_mode is defined %}
+  # Configure SSL verification mode. If `none` is configured, all server hosts
+  # and certificates will be accepted. In this mode, SSL based connections are
+  # susceptible to man-in-the-middle attacks. Use only for testing. Default is
+  # `full`.
+  ssl.verification_mode: {{ filebeat_settings.output.redis.ssl.verification_mode }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.ssl.supported_protocols is defined %}
+  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
+  # 1.2 are enabled.
+  ssl.supported_protocols: [{{ "'%s'" %"','".join(filebeat_settings.output.redis.ssl.supported_protocols) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.ssl.certificate is defined %}
+  # Certificate for SSL client authentication
+  ssl.certificate: "{{ filebeat_settings.output.redis.ssl.certificate }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.ssl.key is defined %}
+  # Client Certificate Key
+  ssl.key: "{{ filebeat_settings.output.redis.ssl.key }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.ssl.key_passphrase is defined %}
+  # Optional passphrase for decrypting the Certificate Key.
+  ssl.key_passphrase: '{{ filebeat_settings.output.redis.ssl.key_passphrase }}'
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.ssl.cipher_suites is defined %}
+  # Configure cipher suites to be used for SSL connections
+  ssl.cipher_suites: [{{ "'%s'" %"','".join(filebeat_settings.output.redis.ssl.cipher_suites) }}]
+  {%- endif %}
+
+  {%- if filebeat_settings.output.redis.ssl.curve_types is defined %}
+  # Configure curve types for ECDHE based cipher suites
+  ssl.curve_types: [{{ "'%s'" %"','".join(filebeat_settings.output.redis.ssl.curve_types) }}]
+  {%- endif %}
+  {%- endif %}
+{%- endif %}
+
+{%- if filebeat_settings.output.file is defined %}
+#------------------------------- File output -----------------------------------
+output.file:
+  {%- if filebeat_settings.output.file.enabled is defined %}
+  # Boolean flag to enable or disable the output module.
+  enabled: {{ filebeat_settings.output.file.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.file.path is defined %}
+  # Path to the directory where to save the generated files. The option is
+  # mandatory.
+  path: "{{ filebeat_settings.output.file.path }}"
+  {%- endif %}
+
+  {%- if filebeat_settings.output.file.filename is defined %}
+  # Name of the generated files. The default is `filebeat` and it generates
+  # files: `filebeat`, `filebeat.1`, `filebeat.2`, etc.
+  filename: {{ filebeat_settings.output.file.filename }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.file.rotate_every_kb is defined %}
+  # Maximum size in kilobytes of each file. When this size is reached, and on
+  # every filebeat restart, the files are rotated. The default value is 10240
+  # kB.
+  rotate_every_kb: {{ filebeat_settings.output.file.rotate_every_kb }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.file.number_of_files is defined %}
+  # Maximum number of files under path. When this number of files is reached,
+  # the oldest file is deleted and the rest are shifted from last to first. The
+  # default is 7 files.
+  number_of_files: {{ filebeat_settings.output.file.number_of_files }}
+  {%- endif %}
+{%- endif %}
+
+{%- if filebeat_settings.output.console is defined %}
+#----------------------------- Console output ---------------------------------
+output.console:
+  {%- if filebeat_settings.output.console.enabled is defined %}
+  # Boolean flag to enable or disable the output module.
+  enabled: {{ filebeat_settings.output.console.enabled }}
+  {%- endif %}
+
+  {%- if filebeat_settings.output.console.pretty is defined %}
+  # Pretty print json event
+  pretty: {{ filebeat_settings.output.console.pretty }}
+  {%- endif %}
+{%- endif %}
+
+{%- if filebeat_settings.path is defined %}
+#================================= Paths ======================================
+
+{%- if filebeat_settings.path.home is defined %}
+# The home path for the filebeat installation. This is the default base path
+# for all other path settings and for miscellaneous files that come with the
+# distribution (for example, the sample dashboards).
+# If not set by a CLI flag or in the configuration file, the default for the
+# home path is the location of the binary.
+path.home: {{ filebeat_settings.path.home }}
+{%- endif %}
+
+{%- if filebeat_settings.path.config is defined %}
+# The configuration path for the filebeat installation. This is the default
+# base path for configuration files, including the main YAML configuration file
+# and the Elasticsearch template file. If not set by a CLI flag or in the
+# configuration file, the default for the configuration path is the home path.
+path.config: {{ filebeat_settings.path.config }}
+{%- endif %}
+
+{%- if filebeat_settings.path.data is defined %}
+# The data path for the filebeat installation. This is the default base path
+# for all the files in which filebeat needs to store its data. If not set by a
+# CLI flag or in the configuration file, the default for the data path is a data
+# subdirectory inside the home path.
+path.data: {{ filebeat_settings.path.data }}
+{%- endif %}
+
+{%- if filebeat_settings.path.logs is defined %}
+# The logs path for a filebeat installation. This is the default location for
+# the Beat's log files. If not set by a CLI flag or in the configuration file,
+# the default for the logs path is a logs subdirectory inside the home path.
+path.logs: {{ filebeat_settings.path.logs }}
+{%- endif %}
+{%- endif %}
+
+{%- if filebeat_settings.logging is defined %}
+#================================ Logging ======================================
+# There are three options for the log output: syslog, file, stderr.
+# Under Windows systems, the log files are per default sent to the file output,
+# under all other system per default to syslog.
+
+{%- if filebeat_settings.logging.level is defined %}
+# Sets log level. The default log level is info.
+# Available log levels are: critical, error, warning, info, debug
+logging.level: {{ filebeat_settings.logging.level }}
+{%- endif %}
+
+{%- if filebeat_settings.logging.selectors is defined %}
+# Enable debug output for selected components. To enable all selectors use ["*"]
+# Other available selectors are "beat", "publish", "service"
+# Multiple selectors can be chained.
+logging.selectors: [{{ "'%s'" %"','".join(filebeat_settings.logging.selectors) }}]
+{%- endif %}
+
+{%- if filebeat_settings.logging.to_syslog is defined %}
+# Send all logging output to syslog. The default is false.
+logging.to_syslog: {{ filebeat_settings.logging.to_syslog }}
+{%- endif %}
+
+{%- if filebeat_settings.logging.metrics is defined %}
+{%- if filebeat_settings.logging.metrics.enabled is defined %}
+# If enabled, filebeat periodically logs its internal metrics that have changed
+# in the last period. For each metric that changed, the delta from the value at
+# the beginning of the period is logged. Also, the total values for
+# all non-zero internal metrics are logged on shutdown. The default is true.
+logging.metrics.enabled: {{ filebeat_settings.logging.metrics.enabled }}
+{%- endif %}
+
+{%- if filebeat_settings.logging.metrics.period is defined %}
+# The period after which to log the internal metrics. The default is 30s.
+logging.metrics.period: {{ filebeat_settings.logging.metrics.period }}
+{%- endif %}
+{%- endif %}
+
+# Logging to rotating files files. Set logging.to_files to false to disable logging to
+# files.
+logging.to_files: {{ filebeat_settings.logging.to_files }}
+{%- if filebeat_settings.logging.files is defined %}
+logging.files:
+  {%- if filebeat_settings.logging.files.path is defined %}
+  # Configure the path where the logs are written. The default is the logs directory
+  # under the home path (the binary location).
+  path: {{ filebeat_settings.logging.files.path }}
+  {%- endif %}
+
+  {%- if filebeat_settings.logging.files.name is defined %}
+  # The name of the files where the logs are written to.
+  name: {{ filebeat_settings.logging.files.name }}
+  {%- endif %}
+
+  {%- if filebeat_settings.logging.files.rotateeverybytes is defined %}
+  # Configure log file size limit. If limit is reached, log file will be
+  # automatically rotated
+  rotateeverybytes: {{ filebeat_settings.logging.files.rotateeverybytes }}
+  {%- endif %}
+
+  {%- if filebeat_settings.logging.files.keepfiles is defined %}
+  # Number of rotated log files to keep. Oldest files will be deleted first.
+  keepfiles: {{ filebeat_settings.logging.files.keepfiles }}
+  {%- endif %}
+{%- endif %}
+{%- endif %}
+

@@ -1,13 +1,13 @@
 {% set os_map = salt['grains.filter_by']({
     'Debian': {
-        'pkgrepo': 'deb https://packages.elastic.co/beats/apt stable main',
+        'pkgrepo': 'deb https://artifacts.elastic.co/packages/5.x/apt stable main',
         'key_url': 'https://packages.elastic.co/GPG-KEY-elasticsearch',
         'file': '/etc/apt/sources.list.d/beat.list',
         'pkg_name': 'filebeat',
         'service_name': 'filebeat'
     },
     'RedHat': {
-        'pkgrepo': 'deb https://packages.elastic.co/beats/apt stable main',
+        'pkgrepo': '',
         'key_url': 'https://packages.elastic.co/GPG-KEY-elasticsearch',
         'file': '/etc/apt/sources.list.d/beat.list',
         'pkg_name': 'filebeat',
@@ -34,6 +34,12 @@
             'scan_frequency': '10s',
             'harvester_buffer_size': 16384,
             'max_bytes': 10485760,
+            'json': {
+                'message_key': '',
+                'keys_under_root': 'false',
+                'overwrite_keys': 'false',
+                'add_error_key': 'false'
+            },
             'multiline': {
                 'pattern': '^\[',
                 'negate': 'false',
@@ -42,77 +48,181 @@
                 'timeout': '5s',
             },
             'tail_files': 'false',
+            'symlinks': 'false',
             'backoff': '1s',
             'max_backoff': '10s',
             'backoff_factor': 2,
-            'partial_line_waiting': '5s',
-            'force_close_files': 'false',
-            'spool_size': 1024,
-            'idle_timeout': '5s',
-            'registry_file': '/var/lib/filebeat/registry',
-            'config_dir': ''
+            'harvester_limit': 0,
+            'close_inactive': '5m',
+            'close_renamed': 'false',
+            'close_removed': 'true',
+            'close_eof': 'false',
+            'clean_inactive': 0,
+            'clean_removed': 'true',
+            'close_timeout': 0,
+            'enabled': 'true',
+            'deprecated_partial_line_waiting': '5s',
+            'deprecated_force_close_files': 'false',
         },
+        'spool_size': 1024,
+        'publish_async': 'false',
+        'idle_timeout': '5s',
+        'registry_file': '/var/lib/filebeat/registry',
+        'config_dir': '',
+        'shutdown_timeout': 0,
         'output': {
             'elasticsearch': {
                 'hosts': ['localhost:9200'],
+                'compression_level': 0,
                 'protocol': 'https',
                 'username': 'admin',
                 'password': 's3cr3t',
+                'parameters': [],
                 'worker': 1,
                 'index': 'filebeat',
+                'pipeline': '',
                 'path': '/elasticsearch',
                 'proxy_url': 'http://proxy:3128',
                 'max_retries': 3,
                 'bulk_max_size': 50,
                 'timeout': 90,
                 'flush_interval': 1,
-                'save_topology': 'false',
-                'topology_expire': 15,
-                'tls': {
+                'deprecated_save_topology': 'false',
+                'deprecated_topology_expire': 15,
+                'template': {
+                    'enabled': 'true',
+                    'name': 'filebeat',
+                    'path': '${path.config}/filebeat.template.json',
+                    'overwrite': 'false',
+                    'versions': {
+                        '2x': {
+                            'path': '${path.config}/filebeat.template-es2x.json'
+                        }
+                    },
+                },
+                'ssl': {
+                    'enabled': 'true',
+                    'verification_mode': 'full',
+                    'supported_protocols': ['TLSv1.0', 'TLSv1.1', 'TLSv1.2'],
                     'certificate_authorities': ['/etc/pki/root/ca.pem'],
                     'certificate': '/etc/pki/client/cert.pem',
-                    'certificate_key': '/etc/pki/client/cert.key',
-                    'insecure': 'true',
+                    'key': '/etc/pki/client/cert.key',
+                    'key_passphrase': '',
+                    'deprecated_insecure': 'true',
                     'cipher_suites': [],
                     'curve_types': [],
-                    'min_version': '1.0',
-                    'max_version': '1.2'
+                    'deprecated_min_version': '1.0',
+                    'deprecated_max_version': '1.2'
                 }
             },
             'logstash': {
+                'enabled': 'true',
                 'hosts': ['localhost:5044'],
                 'worker': 1,
                 'compression_level': 3,
                 'loadbalance': 'true',
+                'pipelining': 0,
                 'index': 'filebeat',
-                'tls': {
+                'proxy_url': 'socks5://user:password@socks5-server:2233',
+                'proxy_use_local_resolver': 'false',
+                'ssl': {
+                    'enabled': 'true',
+                    'verification_mode': 'full',
+                    'supported_protocols': ['TLSv1.0', 'TLSv1.1', 'TLSv1.2'],
                     'certificate_authorities': ['/etc/pki/root/ca.pem'],
                     'certificate': '/etc/pki/client/cert.pem',
-                    'certificate_key': '/etc/pki/client/cert.key',
-                    'insecure': 'true',
+                    'key': '/etc/pki/client/cert.key',
+                    'key_passphrase': '',
+                    'deprecated_insecure': 'true',
+                    'cipher_suites': [],
+                    'curve_types': []
+                }
+            },
+            'kafka': {
+                'enabled': 'true',
+                'hosts': ['localhost:9092'],
+                'topic': 'beats',
+                'key': '',
+                'partition': {
+                    'reachable_only': 'false',
+                    'hash': []
+                },
+                'username': '',
+                'password': '',
+                'version': 0.8.2,
+                'metadata': {
+                    'retry': {
+                        'max': 3,
+                        'backoff': '250ms'
+                    },
+                    'refresh_frequency': '10m'
+                },
+                'worker': 1,
+                'max_retries': 3,
+                'bulk_max_size': 2048,
+                'timeout': '30s',
+                'broker_timeout': '10s',
+                'channel_buffer_size': 256,
+                'keep_alive': 0,
+                'compression': 'gzip',
+                'max_message_bytes': 1000000,
+                'required_acks': 1,
+                'flush_interval': '1s',
+                'client_id': 'beats',
+                'ssl': {
+                    'enabled': 'true',
+                    'verification_mode': 'full',
+                    'supported_protocols': ['TLSv1.0', 'TLSv1.1', 'TLSv1.2'],
+                    'certificate_authorities': ['/etc/pki/root/ca.pem'],
+                    'certificate': '/etc/pki/client/cert.pem',
+                    'key': '/etc/pki/client/cert.key',
+                    'key_passphrase': '',
                     'cipher_suites': [],
                     'curve_types': []
                 }
             },
             'file': {
+                'enabled': 'true',
                 'path': '/tmp/filebeat',
                 'filename': 'filebeat',
                 'rotate_every_kb': 10000,
                 'number_of_files': 7
             },
             'redis': {
+                'enabled': 'true',
                 'hosts': ['127.0.0.1'],
                 'host': '127.0.0.1',
                 'port': 6379,
-                'save_topology': true,
+                'key': '',
+                'password': '',
+                'deprecated_save_topology': true,
                 'index': 'filebeat',
                 'db': 0,
-                'db_topology': 1,
+                'deprecated_db_topology': 1,
                 'password': '',
-                'timeout': 5,
-                'reconnect_interval': 1
+                'deprecated_reconnect_interval': 1,
+                'datatype': 'list',
+                'worker': 1,
+                'loadbalance': 'true',
+                'timeout': '5s',
+                'max_retries': 3,
+                'bulk_max_size': 2048,
+                'proxy_url': '',
+                'proxy_use_local_resolver': 'false',
+                'ssl': {
+                    'enabled': 'true',
+                    'verification_mode': 'full',
+                    'supported_protocols': ['TLSv1.0', 'TLSv1.1', 'TLSv1.2'],
+                    'certificate_authorities': ['/etc/pki/root/ca.pem'],
+                    'certificate': '/etc/pki/client/cert.pem',
+                    'key': '/etc/pki/client/cert.key',
+                    'key_passphrase': '',
+                    'cipher_suites': [],
+                    'curve_types': []
+                }
             },
             'console': {
+                'enabled': 'true',
                 'pretty': 'false'
             }
         },
@@ -124,19 +234,32 @@
             'topology_expire': 15,
             'geoip': {
                 'paths': ['/usr/share/GeoIP/GeoLiteCity.dat', '/usr/local/var/GeoIP/GeoLiteCity.dat']
-            }
+            },
+            'queue_size': 1000,
+            'bulk_queue_size': 0,
+            'max_procs': ''
         },
         'logging': {
             'to_syslog': 'true',
-            'to_files': 'false',
+            'to_files': 'true',
             'files': {
                 'path': '/var/log/mybeat',
-                'name': 'mybeat',
+                'name': 'filebeat',
                 'rotateeverybytes': 10485760,
                 'keepfiles': 7
             },
             'selectors': [],
-            'level': 'error'
+            'level': 'info',
+            'metrics': {
+                'enabled': 'true',
+                'period': '30s'
+            }
+        },
+        'path': {
+            'home': '',
+            'config': '${path.home}',
+            'data': '${path.home}/data',
+            'logs': '${path.home}/logs',
         }
     }
 }%}
@@ -150,7 +273,13 @@
         },
         'logging': {
             'to_syslog': 'true',
+            'to_files': 'true',
             'level': 'error'
+        },
+        'output': {
+            'elasticsearch': {
+                'hosts': ['localhost:9200']
+            }
         }
     }
 }%}
