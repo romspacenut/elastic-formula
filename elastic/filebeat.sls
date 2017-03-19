@@ -42,15 +42,15 @@ install-filebeat:
     - source: salt://elastic/filebeat/conf/filebeat-5-x.jinja
     - template: jinja
     - makedirs: True
-    - defaults:
-      prospectors: {{ filebeat_settings.prospectors }}
-      output: {{ filebeat_settings.output }}
-      {% if filebeat_settings.shipper is defined %}
-      shipper: {{ filebeat_settings.shipper }}
-      {% endif %}
-      {% if filebeat_settings.logging is defined %}
-      logging: {{ filebeat_settings.logging }}
-      {% endif %}
+#    - defaults:
+#      prospectors: {{ filebeat_settings.prospectors }}
+#      output: {{ filebeat_settings.output }}
+#      {% if filebeat_settings.shipper is defined %}
+#      shipper: {{ filebeat_settings.shipper }}
+#      {% endif %}
+#      {% if filebeat_settings.logging is defined %}
+#      logging: {{ filebeat_settings.logging }}
+#      {% endif %}
   cmd.wait:
     - use_vt: True
     - user: root

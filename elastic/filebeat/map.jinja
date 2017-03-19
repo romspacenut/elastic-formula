@@ -15,7 +15,7 @@
     },
 }, grain='os_family', merge=salt['pillar.get']('elastic:filebeat:lookup'), default='Debian') %}
 
-{% set full_settings = {
+{% set complete_settings = {
     'filebeat': {
         'prospectors': {
             'paths': ['/var/log/*.log'],
