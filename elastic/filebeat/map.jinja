@@ -7,9 +7,11 @@
         'service_name': 'filebeat'
     },
     'RedHat': {
+        'name': 'elastic-5.x',
+        'humanname': 'Elastic repository for 5.x packages',
         'pkgrepo': '',
-        'key_url': 'https://packages.elastic.co/GPG-KEY-elasticsearch',
-        'file': '/etc/apt/sources.list.d/beat.list',
+        'key_url': 'https://artifacts.elastic.co/GPG-KEY-elasticsearch',
+        'file': '/etc/yum.repos.d/beat.repo',
         'pkg_name': 'filebeat',
         'service_name': 'filebeat'
     },

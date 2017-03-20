@@ -20,13 +20,19 @@ logstash-repo-key:
 
 logstash-repo:
   pkgrepo.managed:
-    - humanname: Elastic Beats Repository
-    - baseurl: https://packages.elastic.co/beats/yum/el/$basearch
+    - clean_file: True
+    - name: {{ filebeat_settings.name }}
+    - humanname: {{ filebeat_settings.humanname }}
+    - baseurl: https://artifacts.elastic.co/packages/5.x/yum
     - gpgcheck: 1
-    - gpgkey: https://packages.elastic.co/GPG-KEY-elasticsearch
+    - gpgkey: {{ filebeat_settings.key_url }}
     - enabled: 1
     - require:
       - cmd: logstash-repo-key
+    - require_in:
+      - pkg: install-filebeat
+    - watch_in:
+      - pkg: install-filebeat
 {%- endif %}
 
 install-filebeat:
