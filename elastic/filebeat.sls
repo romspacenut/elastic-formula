@@ -3,6 +3,7 @@
 {% if salt['grains.get']('osfullname') == 'Ubuntu' %}
 filebeat_repo:
   pkgrepo.managed:
+    - clean_file: True
     - name: {{ filebeat_settings.pkgrepo }}
     - file: {{ filebeat_settings.file }}
     - gpgcheck: 1
@@ -29,28 +30,15 @@ logstash-repo:
 {%- endif %}
 
 install-filebeat:
-  pkg.installed:
+  pkg.latest:
     - name: {{ filebeat_settings.pkg_name }}
     - skip_verify: True
-    {% if filebeat_settings.version is defined %}
-    - version: {{ filebeat_settings.version }}
-    {% endif %}
 
 /etc/filebeat/filebeat.yml:
   file.managed:
-    #- source: salt://elastic/filebeat/filebeat.yml.jinja
     - source: salt://elastic/filebeat/conf/filebeat-5-x.jinja
     - template: jinja
     - makedirs: True
-#    - defaults:
-#      prospectors: {{ filebeat_settings.prospectors }}
-#      output: {{ filebeat_settings.output }}
-#      {% if filebeat_settings.shipper is defined %}
-#      shipper: {{ filebeat_settings.shipper }}
-#      {% endif %}
-#      {% if filebeat_settings.logging is defined %}
-#      logging: {{ filebeat_settings.logging }}
-#      {% endif %}
   cmd.wait:
     - use_vt: True
     - user: root
